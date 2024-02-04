@@ -4,7 +4,7 @@ outline: [2, 3]
 
 # option
 
-[View Source](https://github.com/lukadev-0/util.luau/blob/main/packages/option/init.lua)
+[View Source](https://github.com/lukadev-0/util.luau/blob/main/packages/option/init.luau)
 
 The `option` package provides the `Option<T>` type, which is a type that represents
 a value that may or may not exist, akin to `T | nil`.
