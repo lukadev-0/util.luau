@@ -1,1 +1,4 @@
-std = "luau"
+std = "luau+roblox"
+
+[config]
+global_usage = { ignore_pattern = "TARGET" }

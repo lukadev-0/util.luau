@@ -68,13 +68,30 @@ local function createDarkluaConfig()
 
 	fs.writeFile("build/src/lune.darklua.json", serde.encode("json", luneConfig))
 
-	local bundleConfig = deepClone(baseConfig)
-	bundleConfig.bundle = {
+	local baseBundleConfig = deepClone(baseConfig)
+	baseBundleConfig.bundle = {
 		require_mode = "path",
 		modules_identifier = "__MODULES",
+		excludes = { "@lune/**" },
 	}
 
-	fs.writeFile("build/src/bundle.darklua.json", serde.encode("json", bundleConfig))
+	local robloxBundleConfig = deepClone(baseBundleConfig)
+	table.insert(robloxBundleConfig.rules, 1, {
+		rule = "inject_global_value",
+		identifier = "TARGET",
+		value = "roblox",
+	})
+
+	fs.writeFile("build/src/bundle_roblox.darklua.json", serde.encode("json", robloxBundleConfig))
+
+	local luneBundleConfig = deepClone(baseBundleConfig)
+	table.insert(robloxBundleConfig.rules, 1, {
+		rule = "inject_global_value",
+		identifier = "TARGET",
+		value = "lune",
+	})
+
+	fs.writeFile("build/src/bundle_lune.darklua.json", serde.encode("json", luneBundleConfig))
 end
 
 local function copyPackageSrc(src: string, dest: string)
@@ -200,24 +217,35 @@ local function buildBundle()
 	stdio.write("\n\n")
 	stdio.write(stdio.style("reset"))
 
-	local entrypoint = ""
-	entrypoint ..= "return {\n"
+	local function generateBundle(target: string)
+		local entrypoint = ""
+		entrypoint ..= "return {\n"
 
-	for _, dir in fs.readDir("packages") do
-		local packageConfig = serde.decode("toml", fs.readFile(`packages/{dir}/config.toml`))
-		if packageConfig.bundle then
-			entrypoint ..= `  {packageConfig.bundle} = require("../pkg/{dir}/lune"),\n`
+		for _, dir in fs.readDir("packages") do
+			local packageConfig = serde.decode("toml", fs.readFile(`packages/{dir}/config.toml`))
+			if packageConfig.bundle then
+				entrypoint ..= `  {packageConfig.bundle} = require("../pkg/{dir}/{target}"),\n`
+			end
 		end
+
+		entrypoint ..= "}\n"
+
+		local bundleSrcPath = `build/src/util.{target}.luau`
+		local bundleOutPath = `build/util.{target}.luau`
+
+		fs.writeFile(bundleSrcPath, entrypoint)
+
+		exec(`darklua process {bundleSrcPath} {bundleOutPath} --config build/src/bundle_{target}.darklua.json`)
+		print(
+			`bundled for {stdio.style("bold")}{target}{stdio.style("reset")} to {stdio.style("bold")}{bundleOutPath}{stdio.style(
+				"reset"
+			)}`
+		)
+		print("")
 	end
 
-	entrypoint ..= "}\n"
-
-	fs.writeFile("build/src/util.luau", entrypoint)
-
-	exec("darklua process build/src/util.luau build/util.luau --config build/src/bundle.darklua.json")
-
-	print(`bundled to {stdio.style("bold")}build/util.luau{stdio.style("reset")}`)
-	print("")
+	generateBundle("roblox")
+	generateBundle("lune")
 end
 
 prepareBuild()

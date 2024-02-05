@@ -20,6 +20,7 @@ export default defineConfig({
         items: [
           { text: "option", link: "/reference/option" },
           { text: "result", link: "/reference/result" },
+          { text: "threadpool", link: "/reference/threadpool" },
         ],
       },
     ],
