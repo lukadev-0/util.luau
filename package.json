@@ -1,10 +1,14 @@
 {
+  "name": "util.luau",
+  "private": true,
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
+    "@types/node": "^20.11.16",
+    "toml": "^3.0.0",
     "vitepress": "1.0.0-rc.41"
   }
 }

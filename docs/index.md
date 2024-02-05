@@ -9,6 +9,9 @@ hero:
     - theme: brand
       text: Get Started
       link: /introduction
+    - theme: alt
+      text: View on GitHub
+      link: https://github.com/lukadev-0/util.luau
 
 features:
   - title: Type-safe
