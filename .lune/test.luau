@@ -25,6 +25,8 @@ local luau = require("@lune/luau")
 local process = require("@lune/process")
 local stdio = require("@lune/stdio")
 
+_G.TARGET = "lune"
+
 local function findTestFiles(dir: string): { string }
 	local files = {}
 	for _, name in fs.readDir(dir) do
