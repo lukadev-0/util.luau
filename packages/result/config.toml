@@ -1,4 +1,4 @@
-name = "lukadev-0/result"
+name = "result"
 description = "Result<T, E> type in Luau"
 version = "1.0.0"
 

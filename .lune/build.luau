@@ -127,7 +127,7 @@ local function buildPackage(packageName: string)
 
 	local wallyManifest = {
 		package = {
-			name = packageConfig.name,
+			name = `lukadev-0/{packageConfig.name}`,
 			version = packageConfig.version,
 			description = packageConfig.description,
 			license = "MIT",

@@ -17,7 +17,10 @@ export default defineConfig({
       },
       {
         text: "Reference",
-        items: [{ text: "option", link: "/reference/option" }],
+        items: [
+          { text: "option", link: "/reference/option" },
+          { text: "result", link: "/reference/result" },
+        ],
       },
     ],
 
