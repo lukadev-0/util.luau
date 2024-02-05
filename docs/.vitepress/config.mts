@@ -5,6 +5,7 @@ export default defineConfig({
   description: "A collection of useful utilities for Luau.",
   cleanUrls: true,
   lastUpdated: true,
+  base: "/util.luau/",
 
   themeConfig: {
     nav: [{ text: "Docs", link: "/introduction" }],
