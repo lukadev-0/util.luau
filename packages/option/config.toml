@@ -3,6 +3,4 @@ description = "Option<T> type in Luau"
 version = "1.0.0"
 
 types = ["Option<T>"]
-
-[bundle]
-Option = "$"
+bundle = "Option"

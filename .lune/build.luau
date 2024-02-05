@@ -201,20 +201,16 @@ local function buildBundle()
 	stdio.write(stdio.style("reset"))
 
 	local entrypoint = ""
-	entrypoint ..= "local util = {}\n"
+	entrypoint ..= "return {\n"
 
 	for _, dir in fs.readDir("packages") do
 		local packageConfig = serde.decode("toml", fs.readFile(`packages/{dir}/config.toml`))
 		if packageConfig.bundle then
-			entrypoint ..= `local util_{dir} = require("../pkg/{dir}/lune")\n`
-			for name, path in pairs(packageConfig.bundle) do
-				local fullPath = path:gsub("%$", `util_{dir}`)
-				entrypoint ..= `util.{name} = {fullPath}\n`
-			end
+			entrypoint ..= `  {packageConfig.bundle} = require("../pkg/{dir}/lune"),\n`
 		end
 	end
 
-	entrypoint ..= "return util\n"
+	entrypoint ..= "}\n"
 
 	fs.writeFile("build/src/util.luau", entrypoint)
 
