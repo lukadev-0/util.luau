@@ -125,6 +125,9 @@ local function createTestEnv(file: string, testLib)
 			end
 			return mod
 		end
+		if path:match("^@lune/") then
+			return require(path) :: any
+		end
 		return require(`../{file}/../{path}`) :: any
 	end
 	return testEnv
