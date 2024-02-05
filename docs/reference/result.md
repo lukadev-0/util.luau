@@ -32,7 +32,7 @@ result = "lukadev-0/result@{{ data.result }}"
 
 ```lua [Bundle]
 local util = require(...)
-local foo = util.Option.Some(5)
+local foo = util.Result.Ok(5)
 ```
 
 :::
