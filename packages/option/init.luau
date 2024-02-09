@@ -13,11 +13,11 @@ Option.__index = Option
 
 export type Option<T> = typeof(setmetatable(
 	{} :: {
-		_s: true,
+		_s: boolean,
 		_v: T,
 	},
 	Option
-)) | typeof(setmetatable({} :: { _s: false }, Option))
+))
 
 function Option._new<T>(value: T): Option<T>
 	return setmetatable({
@@ -28,7 +28,7 @@ end
 --[=[
   The `Option` that does not contain a value.
 ]=]
-Option.None = table.freeze(setmetatable({ _s = false :: false, _v = nil }, Option)) :: Option<never>
+Option.None = table.freeze(setmetatable({ _s = false :: false, _v = nil }, Option) :: any) :: Option<any>
 
 --[=[
   Creates a new `Some` with the given value. A `Some` may contain
@@ -36,7 +36,7 @@ Option.None = table.freeze(setmetatable({ _s = false :: false, _v = nil }, Optio
 ]=]
 function Option.Some<T>(value: T): Option<T>
 	local self = setmetatable({ _s = true :: true, _v = value }, Option)
-	return table.freeze(self)
+	return table.freeze(self) :: any
 end
 
 --[=[
