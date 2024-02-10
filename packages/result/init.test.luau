@@ -168,7 +168,7 @@ end)
 describe("mapOrElse", function()
 	test("returns the default value when the result is Err", function()
 		local result = Result.Err("error"):mapOrElse(function(e: string)
-			return e:upper()
+			return e:upper() :: number | string
 		end, function(v: number)
 			return v * 2
 		end)
@@ -178,7 +178,7 @@ describe("mapOrElse", function()
 
 	test("returns the mapped value when the result is Ok", function()
 		local result = Result.Ok(5):mapOrElse(function(e: string)
-			return e:upper()
+			return e:upper() :: number | string
 		end, function(v: number)
 			return v * 2
 		end)
@@ -327,16 +327,16 @@ end)
 describe("orElse", function()
 	test("returns the Ok when the result is Ok", function()
 		local result = Result.Ok(5):orElse(function(e: string)
-			return Result.Ok(e:upper())
+			return Result.Err(e:upper())
 		end)
 		assertEq(result, Result.Ok(5))
 	end)
 
 	test("returns the other result when the result is Err", function()
 		local resultA = Result.Err("error"):orElse(function(e: string)
-			return Result.Ok(e:upper())
+			return Result.Err(e:upper())
 		end)
-		assertEq(resultA, Result.Ok("ERROR"))
+		assertEq(resultA, Result.Err("ERROR"))
 
 		local resultB = Result.Err("error"):orElse(function(e: string)
 			return Result.Err(e:upper())
@@ -388,11 +388,11 @@ describe("match", function()
 	end)
 
 	test("returns the result of the Err function when the result is Err", function()
-		local result: string | number = Result.Err("error"):match({
+		local result = Result.Err("error"):match({
 			Ok = function(v: number)
-				return v * 2
+				return (v * 2) :: string | number
 			end,
-			Err = function(e)
+			Err = function(e: string)
 				return e:upper()
 			end,
 		})
