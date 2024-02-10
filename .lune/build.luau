@@ -163,7 +163,7 @@ local function buildPackage(packageName: string)
 			local dependencyConfig = serde.decode("toml", fs.readFile(`{dependencyPath}/config.toml`))
 			local dependencyVersion = dependencyConfig.version
 
-			wallyManifest.dependencies[dependency] = dependencyVersion
+			wallyManifest.dependencies[dependency] = `lukadev-0/{dependency}@{dependencyVersion}`
 		end
 	end
 
