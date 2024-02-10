@@ -58,7 +58,7 @@ parameters aren't inferred.
 ```lua
 local res = Result.Ok(5)
 local mapped = res:map(function(value)
-  -- ┌────────────────────────── ^^^^^
+  -- ┌───────────────────────── ^^^^^
   -- └ this is typed as `a` instead of `number`
   return value * 2
 end)
