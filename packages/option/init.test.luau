@@ -8,7 +8,7 @@ describe("Some", function()
 	test("returns an option containing the given value", function()
 		local option = Option.Some(1)
 		assertEq(option._s, true)
-		assertEq((option :: any)._v, 1)
+		assertEq(option._v, 1)
 	end)
 end)
 
@@ -117,7 +117,7 @@ describe("unwrapOr", function()
 	end)
 
 	test("returns the default value if the option is None", function()
-		assertEq(Option.None:unwrapOr(10), 10)
+		assertEq((Option.None :: Option.Option<number>):unwrapOr(10), 10)
 	end)
 end)
 
@@ -133,7 +133,7 @@ describe("unwrapOrElse", function()
 
 	test("returns the default value if the option is None", function()
 		assertEq(
-			Option.None:unwrapOrElse(function()
+			(Option.None :: Option.Option<number>):unwrapOrElse(function()
 				return 10
 			end),
 			10
@@ -279,7 +279,7 @@ end)
 
 describe("orOpt", function()
 	test("returns the other option if the option is None", function()
-		assertEq(Option.None:orOpt(Option.Some(5)), Option.Some(5))
+		assertEq((Option.None :: Option.Option<number>):orOpt(Option.Some(5)), Option.Some(5))
 	end)
 
 	test("returns the option if the other option is None", function()
@@ -294,7 +294,7 @@ end)
 describe("orElse", function()
 	test("returns the result of the function if the option is None", function()
 		assertEq(
-			Option.None:orElse(function()
+			(Option.None :: Option.Option<number>):orElse(function()
 				return Option.Some(5)
 			end),
 			Option.Some(5)
@@ -317,7 +317,7 @@ describe("xor", function()
 	end)
 
 	test("returns Some if only one option is None", function()
-		assertEq(Option.None:xor(Option.Some(5)), Option.Some(5))
+		assertEq((Option.None :: Option.Option<number>):xor(Option.Some(5)), Option.Some(5))
 		assertEq(Option.Some(5):xor(Option.None), Option.Some(5))
 	end)
 
@@ -367,13 +367,15 @@ describe("__tostring", function()
 end)
 
 describe("__eq", function()
+	local none: Option.Option<number> = Option.None
+
 	test("returns true if both options are None", function()
-		assertEq(Option.None == Option.None, true)
+		assertEq(none == none, true)
 	end)
 
 	test("returns false if only one option is None", function()
-		assertEq(Option.None == Option.Some(5), false)
-		assertEq(Option.Some(5) == Option.None, false)
+		assertEq(none == Option.Some(5), false)
+		assertEq(Option.Some(5) == none, false)
 	end)
 
 	test("returns true if both options are Some and equal", function()
