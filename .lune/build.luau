@@ -190,6 +190,16 @@ local function buildPackage(packageName: string)
 
 	fs.writeFile(`{packageBuildOut}/init.luau`, initFile)
 
+	if packageConfig.dependencies ~= nil then
+		for _, dependency in pairs(packageConfig.dependencies) do
+			local dependencyLinker = ""
+			dependencyLinker ..= "--!strict\n"
+			dependencyLinker ..= `return require("../{dependency}")\n`
+
+			fs.writeFile(`{packageBuildOut}/{dependency}.luau`, dependencyLinker)
+		end
+	end
+
 	local rojoProject = {
 		name = packageConfig.name,
 		tree = {
