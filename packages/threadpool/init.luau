@@ -1,6 +1,7 @@
-local threadpool = {}
+local env = require("../env")
+local task = env.libs.task
 
-local task = if _G.TARGET == "lune" then require("@lune/task") :: typeof(task) else task
+local threadpool = {}
 
 local freeThreads: { thread } = {}
 

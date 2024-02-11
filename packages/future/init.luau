@@ -1,7 +1,8 @@
 local Option = require("../option")
+local env = require("../env")
 local threadpool = require("../threadpool")
 
-local task = if _G.TARGET == "lune" then require("@lune/task") :: typeof(task) else task
+local task = env.libs.task
 
 export type Future<T> = typeof(setmetatable(
 	{} :: {

@@ -48,25 +48,22 @@ local function createDarkluaConfig()
 	local robloxConfig = deepClone(baseConfig)
 	table.insert(robloxConfig.rules, 1, {
 		rule = "inject_global_value",
-		identifier = "TARGET",
+		identifier = "UTIL_TARGET",
 		value = "roblox",
 	})
 	table.insert(robloxConfig.rules, 1, {
 		rule = "convert_require",
 		current = "path",
-		target = "roblox",
+		target = {
+			name = "roblox",
+			indexing_style = "property",
+		},
 	})
 
 	fs.writeFile("build/src/roblox.darklua.json", serde.encode("json", robloxConfig))
 
-	local luneConfig = deepClone(baseConfig)
-	table.insert(luneConfig.rules, 1, {
-		rule = "inject_global_value",
-		identifier = "TARGET",
-		value = "lune",
-	})
-
-	fs.writeFile("build/src/lune.darklua.json", serde.encode("json", luneConfig))
+	local defaultConfig = deepClone(baseConfig)
+	fs.writeFile("build/src/default.darklua.json", serde.encode("json", defaultConfig))
 
 	local baseBundleConfig = deepClone(baseConfig)
 	baseBundleConfig.bundle = {
@@ -78,20 +75,14 @@ local function createDarkluaConfig()
 	local robloxBundleConfig = deepClone(baseBundleConfig)
 	table.insert(robloxBundleConfig.rules, 1, {
 		rule = "inject_global_value",
-		identifier = "TARGET",
+		identifier = "UTIL_TARGET",
 		value = "roblox",
 	})
 
 	fs.writeFile("build/src/bundle_roblox.darklua.json", serde.encode("json", robloxBundleConfig))
 
-	local luneBundleConfig = deepClone(baseBundleConfig)
-	table.insert(robloxBundleConfig.rules, 1, {
-		rule = "inject_global_value",
-		identifier = "TARGET",
-		value = "lune",
-	})
-
-	fs.writeFile("build/src/bundle_lune.darklua.json", serde.encode("json", luneBundleConfig))
+	local defaultBundleConfig = deepClone(baseBundleConfig)
+	fs.writeFile("build/src/bundle_default.darklua.json", serde.encode("json", defaultBundleConfig))
 end
 
 local function copyPackageSrc(src: string, dest: string)
@@ -172,13 +163,13 @@ local function buildPackage(packageName: string)
 	print("processing files\n")
 
 	exec(`darklua process {packageBuildSrc} {packageBuildOut}/roblox --config build/src/roblox.darklua.json`)
-	exec(`darklua process {packageBuildSrc} {packageBuildOut}/lune --config build/src/lune.darklua.json`)
+	exec(`darklua process {packageBuildSrc} {packageBuildOut}/default --config build/src/default.darklua.json`)
 
 	print("generating linker files")
 
 	local initFile = ""
 	initFile ..= "--!strict\n"
-	initFile ..= 'local pkg = require("./lune")\n'
+	initFile ..= 'local pkg = require("./default")\n'
 
 	if packageConfig.types then
 		for _, type in packageConfig.types do
@@ -241,7 +232,7 @@ local function buildBundle()
 		entrypoint ..= "}\n"
 
 		local bundleSrcPath = `build/src/util.{target}.luau`
-		local bundleOutPath = `build/util.{target}.luau`
+		local bundleOutPath = if target == "default" then `build/util.luau` else `build/util.{target}.luau`
 
 		fs.writeFile(bundleSrcPath, entrypoint)
 
@@ -255,7 +246,7 @@ local function buildBundle()
 	end
 
 	generateBundle("roblox")
-	generateBundle("lune")
+	generateBundle("default")
 end
 
 prepareBuild()

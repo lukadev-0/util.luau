@@ -3,3 +3,4 @@ description = "Spawn threads using a thread pool"
 version = "1.0.0"
 
 bundle = "threadpool"
+dependencies = ["env"]

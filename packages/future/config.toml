@@ -4,4 +4,4 @@ version = "1.0.0"
 
 types = ["Future<T>"]
 bundle = "Future"
-dependencies = ["option", "threadpool"]
+dependencies = ["option", "threadpool", "env"]
