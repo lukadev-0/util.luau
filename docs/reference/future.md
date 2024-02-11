@@ -186,7 +186,7 @@ local fut3 = Future.new(15)
 
 local allFut = Future.all({ fut1, fut2, fut3 })
 
-local res = allFut:await()
+local res = allFut:now():unwrap()
 assert(res[1] == 5)
 assert(res[2] == 10)
 assert(res[3] == 15)
@@ -213,7 +213,7 @@ local fut3 = Future.new(15)
 
 local raceFut = Future.race({ fut1, fut2, fut3 })
 
-local res = raceFut:await()
+local res = raceFut:now():unwrap()
 assert(res == 5)
 ```
 
