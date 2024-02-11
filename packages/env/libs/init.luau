@@ -3,24 +3,32 @@ local taskLib = require("./task")
 
 export type TaskLib = taskLib.TaskLib
 
+type Proxy<T> = typeof(setmetatable({}, { __index = ({} :: any) :: T }))
+
 export type Libs = {
-	task: TaskLib,
+	task: Proxy<TaskLib>,
 }
 
-local function getLib<T>(libMap: { lune: () -> T, roblox: () -> T, default: () -> T }, plat: platform.Platform): T
+local function createProxy<T>(value: T): Proxy<T>
+	return setmetatable({}, { __index = value })
+end
+
+local function getLib<T>(libMap: { lune: () -> T, roblox: () -> T, default: () -> T }, plat: platform.Platform): Proxy<T>
 	if plat == "lune" then
-		return libMap.lune()
+		return createProxy(libMap.lune())
 	elseif plat == "roblox" then
-		return libMap.roblox()
+		return createProxy(libMap.roblox())
 	else
-		return libMap.default()
+		return createProxy(libMap.default())
 	end
 end
 
-local function createLibs(plat: platform.Platform): Libs
+local libs = {}
+
+function libs.createLibs(plat: platform.Platform): Libs
 	return {
 		task = getLib(taskLib, plat),
 	}
 end
 
-return createLibs
+return libs
