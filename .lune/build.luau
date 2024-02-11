@@ -2,6 +2,7 @@
 
 local fs = require("@lune/fs")
 local process = require("@lune/process")
+local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
@@ -97,6 +98,8 @@ local function prepareBuild()
 
 	fs.writeDir("build/src/pkg")
 	fs.writeDir("build/pkg")
+	fs.writeDir("build/rbxm")
+
 	createDarkluaConfig()
 
 	for _, dir in fs.readDir("packages") do
@@ -193,7 +196,10 @@ local function buildPackage(packageName: string)
 	print("copying LICENSE")
 	fs.copy("LICENSE", `{packageBuildOut}/LICENSE`)
 
+	print("generating rbxm")
 	print("")
+	exec(`rojo build {packageBuildOut} --output build/rbxm/{packageConfig.name}.rbxm`)
+
 	print(`package built to {stdio.style("bold")}{packageBuildOut}{stdio.style("reset")}`)
 	print("")
 end
@@ -230,6 +236,29 @@ local function buildBundle()
 	print("")
 end
 
+local function buildRbxmBundle()
+	stdio.write(stdio.style("bold"))
+	stdio.write(stdio.color("blue"))
+	stdio.write("=> ")
+	stdio.write(stdio.style("reset"))
+	stdio.write(stdio.style("bold"))
+	stdio.write("generating rbxm bundle")
+	stdio.write("\n\n")
+	stdio.write(stdio.style("reset"))
+
+	local folder = roblox.Instance.new("Folder")
+	for _, file in fs.readDir("build/rbxm") do
+		local model = roblox.deserializeModel(fs.readFile(`build/rbxm/{file}`))
+		for _, inst in model do
+			inst.Parent = folder
+		end
+	end
+	fs.writeFile("build/util.rbxm", roblox.serializeModel({ folder }))
+
+	print(`rbxm saved to {stdio.style("bold")}build/util.rbxm{stdio.style("reset")}`)
+	print("")
+end
+
 prepareBuild()
 
 for _, dir in fs.readDir("packages") do
@@ -237,3 +266,4 @@ for _, dir in fs.readDir("packages") do
 end
 
 buildBundle()
+buildRbxmBundle()
