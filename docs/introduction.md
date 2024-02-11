@@ -28,4 +28,11 @@ If you're using the fork of Wally for Lune, you can use
 ### Using the bundle
 
 util.luau provides a single script that contains all the utilities. You can download the
-bundle from the [releases](https://github.com/lukadev-0/util.luau/releases).
+bundle from the [releases](https://github.com/lukadev-0/util.luau/releases) under the
+filename `bundle.luau`.
+
+### Roblox RBXMs
+
+You can also install `util.luau` through `.rbxm` files, which are available in the
+[releases](https://github.com/lukadev-0/util.luau/releases), each package has its own
+`.rbxm` file, and a `util.rbxm` is also available which contains every package.
