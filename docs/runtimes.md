@@ -10,6 +10,6 @@ The `env` package provides information about the environment, and provides
 common library interfaces that can be implemented for different runtimes.
 
 Currently, there are default implementations for Roblox and Lune. If you need to
-run code on a different platform, you can
+run code on a different runtime, you can
 [create custom implementations](/reference/env#implementing-libraries) of the
 libraries.

@@ -7,7 +7,7 @@ export type TaskLib = {
 }
 
 local NOT_IMPLEMENTED: any = function()
-	error("Unsupported platform, custom implementations required.", 2)
+	error("Unsupported runtime, custom implementations required.", 2)
 end
 
 local taskLib = {}
