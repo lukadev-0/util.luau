@@ -123,6 +123,24 @@ local fut = Future.spawn(httpGet, "https://google.com/")
 local res = fut:await()
 ```
 
+### Future.pending
+
+```lua
+function Future.pending<T>() -> (Future<T>, (T) -> ())
+```
+
+Returns a future and a function that, when called, will resolve the future with
+the given value.
+
+#### Example
+
+```lua
+local fut: Future.Future<number>, resolve = Future.pending()
+
+resolve(5)
+assert(fut:now() == Option.Some(5))
+```
+
 ### Future.fn
 
 ```lua

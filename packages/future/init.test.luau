@@ -42,6 +42,18 @@ describe("spawn", function()
 	end)
 end)
 
+describe("pending", function()
+	test("resolves when the resolve function is callled", function()
+		local fut: Future.Future<number?>, resolve = Future.pending()
+		assertEq(fut._f, false)
+		assertEq(fut._v, nil)
+
+		resolve(5)
+		assertEq(fut._f, true)
+		assertEq(fut._v, 5)
+	end)
+end)
+
 describe("fn", function()
 	test("creates a function that spawns a future", function()
 		local f = Future.fn(function(a: number, b: number)

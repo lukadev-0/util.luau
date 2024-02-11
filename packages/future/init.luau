@@ -20,6 +20,7 @@ export type FutureImpl = {
 	new: <T>(value: T) -> Future<T>,
 	never: () -> Future<any>,
 	spawn: <T, U...>(f: (U...) -> T, U...) -> Future<T>,
+	pending: <T>() -> (Future<T>, (T) -> ()),
 	fn: <T, V...>(f: (V...) -> T) -> (V...) -> Future<T>,
 
 	all: <T>(futures: { Future<T> }) -> Future<{ T }>,
@@ -85,6 +86,17 @@ function Future.spawn(f, ...)
 	threadpool.spawn(inner, self, f, ...)
 
 	return self
+end
+
+--[=[
+	Creates a future that is pending, and returns the future and a function that
+	can be used to resolve the future with a value.
+]=]
+function Future.pending()
+	local fut = Future.never()
+	return fut, function(value)
+		finish(fut, value)
+	end
 end
 
 --[=[
