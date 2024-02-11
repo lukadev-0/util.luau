@@ -85,7 +85,7 @@ end)
 ### Option.None
 
 ```lua
-Option.None: Option<never>
+Option.None: Option<any>
 ```
 
 The option that does not contain a value.

@@ -86,7 +86,7 @@ end)
 ### Result.Ok
 
 ```lua
-function Result.Ok<T>(value: T): Result<T, never>
+function Result.Ok<T>(value: T): Result<T, any>
 ```
 
 Creates a new `Ok` with the given value.
@@ -101,7 +101,7 @@ assert(result:isOk())
 ### Result.Err
 
 ```lua
-function Result.Err<E>(error: E): Result<never, E>
+function Result.Err<E>(error: E): Result<any, E>
 ```
 
 Creates a new `Err` with the given error.
@@ -116,7 +116,7 @@ assert(result:isErr())
 ### Result.try
 
 ```lua
-function Result.try<T, U...>(f: (U...) -> T, ...: U...): Result<T,unknown>
+function Result.try<T, U...>(f: (U...) -> T, ...: U...): Result<T, unknown>
 ```
 
 Calls the given function and returns a `Result` with the result of the function.
