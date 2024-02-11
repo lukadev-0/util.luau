@@ -68,7 +68,7 @@ local function finish<T>(fut: Future<T>, value: T)
 	end
 
 	for _, callback in fut._c do
-		callback(value)
+		threadpool.spawn(callback, value)
 	end
 end
 
