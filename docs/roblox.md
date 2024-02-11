@@ -1,6 +1,6 @@
 # Roblox
 
-luau.util is designed to work on Roblox too, this is done by processing the
+util.luau is designed to work on Roblox too, this is done by processing the
 code with [darklua](https://darklua.com/) which will convert the path requires
 into Roblox style requires.
 
