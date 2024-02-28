@@ -64,7 +64,9 @@ local function finish<T>(fut: Future<T>, value: T)
 	fut._v = value
 
 	for _, thread in fut._w do
-		task.spawn(thread, value)
+		if coroutine.status(thread) == "suspended" then
+			task.spawn(thread, value)
+		end
 	end
 
 	for _, callback in fut._c do
