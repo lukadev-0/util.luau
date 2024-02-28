@@ -247,6 +247,7 @@ local function buildRbxmBundle()
 	stdio.write(stdio.style("reset"))
 
 	local folder = roblox.Instance.new("Folder")
+	folder.Name = "util"
 	for _, file in fs.readDir("build/rbxm") do
 		local model = roblox.deserializeModel(fs.readFile(`build/rbxm/{file}`))
 		for _, inst in model do
