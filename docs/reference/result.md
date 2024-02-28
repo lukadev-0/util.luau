@@ -22,7 +22,7 @@ This utility is inspired by the
 
 ## Installation
 
-Learn more about [installation](/introduction#installation).
+Learn more about [installation](/docs/getting-started#installation).
 
 ::: code-group
 
@@ -39,11 +39,11 @@ local foo = util.Result.Ok(5)
 
 ## Immutability
 
-The `Result` type is immutable, meaning that once an `Result` is created, it cannot be
-modified.
+The `Result` type is immutable, meaning that once an `Result` is created, it
+cannot be modified.
 
-However, the value inside the `Result` may be mutable, so it is important to be aware
-of this when working with `Result` values.
+However, the value inside the `Result` may be mutable, so it is important to be
+aware of this when working with `Result` values.
 
 ## Typechecking
 
@@ -52,8 +52,8 @@ limitations or bugs, some areas may not typecheck as expected.
 
 ### Callbacks
 
-When calling a function through `:` syntax that takes a callback, the type of the
-parameters aren't inferred.
+When calling a function through `:` syntax that takes a callback, the type of
+the parameters aren't inferred.
 
 ```lua
 local res = Result.Ok(5)
@@ -228,8 +228,8 @@ end))
 function Result:map<U>(f: (T) -> U): Result<U, E>
 ```
 
-Calls the given function with the contained `Ok` value and returns a `Result` with
-the result of the function. Leaving an `Err` value untouched.
+Calls the given function with the contained `Ok` value and returns a `Result`
+with the result of the function. Leaving an `Err` value untouched.
 
 #### Example
 
@@ -308,8 +308,8 @@ assert(err == "An error occurred")
 function Result:mapErr<F>(f: (E) -> F): Result<T, F>
 ```
 
-Calls the given function with the contained `Err` value and returns a `Result` with
-the result of the function. Leaving an `Ok` value untouched.
+Calls the given function with the contained `Err` value and returns a `Result`
+with the result of the function. Leaving an `Ok` value untouched.
 
 #### Example
 
@@ -328,11 +328,13 @@ assert(mapped == Result.Err("AN ERROR OCCURRED"))
 function Result:expect(message: string): T
 ```
 
-Unwraps the `Ok` value, returning it. If the value is an `Err`, it will throw an error
-with the given message.
+Unwraps the `Ok` value, returning it. If the value is an `Err`, it will throw an
+error with the given message.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -348,10 +350,13 @@ assert(result:expect("expected a value") == 5)
 function Result:unwrap(): T
 ```
 
-Unwraps the `Ok` value, returning it. If the value is an `Err`, it will throw an error.
+Unwraps the `Ok` value, returning it. If the value is an `Err`, it will throw an
+error.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -370,11 +375,13 @@ err:unwrap() -- throws "An error occurred"
 function Result:expectErr(message: string): E
 ```
 
-Unwraps the `Err` value, returning it. If the value is an `Ok`, it will throw an error
-with the given message.
+Unwraps the `Err` value, returning it. If the value is an `Ok`, it will throw an
+error with the given message.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -390,10 +397,13 @@ assert(result:expectErr("expected an error") == "An error occurred")
 function Result:unwrapErr(): E
 ```
 
-Unwraps the `Err` value, returning it. If the value is an `Ok`, it will throw an error.
+Unwraps the `Err` value, returning it. If the value is an `Ok`, it will throw an
+error.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -488,8 +498,8 @@ end)
 function Result:unwrapOr(default: T): T
 ```
 
-Unwraps the `Ok` value, returning it. If the value is an `Err`, it will return the
-given default value.
+Unwraps the `Ok` value, returning it. If the value is an `Err`, it will return
+the given default value.
 
 #### Example
 
@@ -507,8 +517,8 @@ assert(err:unwrapOr(0) == 0)
 function Result:unwrapOrElse(f: (E) -> T): T
 ```
 
-Unwraps the `Ok` value, returning it. If the value is an `Err`, it will call the given
-function with the error and return the result.
+Unwraps the `Ok` value, returning it. If the value is an `Err`, it will call the
+given function with the error and return the result.
 
 #### Example
 
@@ -556,14 +566,16 @@ assert(value == 10)
 function Result:unpack(): (T, E)
 ```
 
-If the result is `Ok`, returns a tuple with the value and `nil`, otherwise returns a
-tuple with `nil` and the error.
+If the result is `Ok`, returns a tuple with the value and `nil`, otherwise
+returns a tuple with `nil` and the error.
 
 :::warning TYPE-SAFETY
+
 Due to Luau limitations, this function may not be type-safe.
 
-You may access the `Ok` value even if the result is `Err`, it is important to check
-the `Err` value before using the `Ok` value.
+You may access the `Ok` value even if the result is `Err`, it is important to
+check the `Err` value before using the `Ok` value.
+
 :::
 
 #### Example
@@ -621,8 +633,8 @@ function Result:__eq(other: Result<T, E>): boolean
 
 Called when the `==` operator is used on the `Result`.
 
-Returns `true` if both results are `Ok` and their values are equal, or if both results
-are `Err` and their errors are equal.
+Returns `true` if both results are `Ok` and their values are equal, or if both
+results are `Err` and their errors are equal.
 
 #### Example
 

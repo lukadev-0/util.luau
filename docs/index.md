@@ -4,11 +4,11 @@ layout: home
 hero:
   name: "util.luau"
   text: "A collection of useful utilities for Luau."
-  tagline: Small, simple Luau utilities for Roblox and Lune.
+  tagline: Small, simple, runtime-agnostic utilities for Luau.
   actions:
     - theme: brand
       text: Get Started
-      link: /introduction
+      link: /docs/getting-started
     - theme: alt
       text: View on GitHub
       link: https://github.com/lukadev-0/util.luau
@@ -18,11 +18,12 @@ features:
     details: >
       We try to make the utilities as type-safe as possible, so you can catch
       bugs sooner, and have better autocompletion.
-  - title: Tested
+  - title: Runtime Agnostic
     details: >
-      All utilities are tested, so you can be confident that they work as
-      expected.
-  - title: Roblox & Lune compatible
+      util.luau is designed to run on any Luau runtime, with out-of-the-box
+      support for Roblox and Lune.
+  - title: Simple
     details: >
-      The utilities work on both Roblox and in the Lune runtime.
+      The utilities are designed to be simple and easy to use, so you can write
+      code faster, and skip the boring stuff.
 ---

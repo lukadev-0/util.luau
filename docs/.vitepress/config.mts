@@ -8,28 +8,50 @@ export default defineConfig({
   base: "/util.luau/",
 
   themeConfig: {
-    nav: [{ text: "Docs", link: "/introduction" }],
-
-    sidebar: [
-      {
-        text: "Guide",
-        items: [
-          { text: "Introduction", link: "/introduction" },
-          { text: "Runtimes", link: "/runtimes" },
-          { text: "Roblox", link: "/roblox" },
-        ],
-      },
-      {
-        text: "Reference",
-        items: [
-          { text: "env", link: "/reference/env" },
-          { text: "future", link: "/reference/future" },
-          { text: "option", link: "/reference/option" },
-          { text: "result", link: "/reference/result" },
-          { text: "threadpool", link: "/reference/threadpool" },
-        ],
-      },
+    nav: [
+      { text: "Docs", link: "/docs/getting-started", activeMatch: "/docs/" },
+      { text: "Reference", link: "/reference/", activeMatch: "/reference/" },
     ],
+
+    sidebar: {
+      "/docs/": [
+        {
+          text: "Introduction",
+          items: [
+            { text: "Getting Started", link: "/docs/getting-started" },
+            { text: "Supported Runtimes", link: "/docs/supported-runtimes" },
+          ],
+        },
+        {
+          text: "Guide",
+          items: [
+            { text: "Optional Values", link: "/docs/optional-values" },
+            { text: "Error Handling", link: "/docs/error-handling" },
+          ],
+        },
+      ],
+      "/reference/": [
+        {
+          text: "Reference",
+          items: [
+            {
+              text: "Overview",
+              link: "/reference/",
+            },
+          ],
+        },
+        {
+          text: "Packages",
+          items: [
+            { text: "env", link: "/reference/env" },
+            { text: "future", link: "/reference/future" },
+            { text: "option", link: "/reference/option" },
+            { text: "result", link: "/reference/result" },
+            { text: "threadpool", link: "/reference/threadpool" },
+          ],
+        },
+      ],
+    },
 
     socialLinks: [
       { icon: "github", link: "https://github.com/lukadev-0/util.luau" },

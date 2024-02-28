@@ -20,7 +20,7 @@ This utility is inspired by the
 
 ## Installation
 
-Learn more about [installation](/introduction#installation).
+Learn more about [installation](/docs/getting-started#installation).
 
 ::: code-group
 
@@ -42,8 +42,8 @@ limitations or bugs, some areas may not typecheck as expected.
 
 ### Callbacks
 
-When calling a function through `:` syntax that takes a callback, the type of the
-parameters aren't inferred.
+When calling a function through `:` syntax that takes a callback, the type of
+the parameters aren't inferred.
 
 ```lua
 local fut = Future.new(5)
@@ -112,6 +112,8 @@ function Future.spawn<T, U...>(f: () -> T, ...: U...) -> Future<T>
 Creates a future and spawns the function in a new thread. The future will
 resolve with the result of the function.
 
+Throwing inside of the function will lead to undefined behavior.
+
 #### Example
 
 ```lua
@@ -151,8 +153,8 @@ Returns a function that, when called, creates a future and spawns the given
 function in a new thread. The future will resolve with the result of the
 function.
 
-This allows you to convert a yielding function into a function that returns
-a Future.
+This allows you to convert a yielding function into a function that returns a
+Future.
 
 #### Example
 
@@ -172,8 +174,8 @@ local res = fut:await()
 function Future.all<T>(futures: { Future<T> }) -> Future<{ T }>
 ```
 
-Returns a future that resolves once all the given futures have resolved.
-It resolves with a table of the resolved values.
+Returns a future that resolves once all the given futures have resolved. It
+resolves with a table of the resolved values.
 
 This turns `{ Future<T> }` into `Future<{ T }>`.
 
@@ -199,8 +201,8 @@ function Future.race<T>(futures: { Future<T> }) -> Future<T>
 ```
 
 Returns a future that resolves once the first of the given futures has resolved.
-It resolves with the value of the first resolved future. The results of the other
-futures are discarded.
+It resolves with the value of the first resolved future. The results of the
+other futures are discarded.
 
 This turns `{ Future<T> }` into `Future<T>`.
 

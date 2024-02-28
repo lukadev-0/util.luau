@@ -12,15 +12,15 @@ import { data } from "./package-versions.data.ts";
 separate thread like `task.spawn`, however, it will pool and reuse threads.
 
 This uses a global pool of free threads, when `spawn` is called, it'll take a
-thread from the pool and run the function in it, if there isn't a thread available
-it'll create a new one. Once the function has finished running, the thread will
-be returned to the pool.
+thread from the pool and run the function in it, if there isn't a thread
+available it'll create a new one. Once the function has finished running, the
+thread will be returned to the pool.
 
 This can make spawning threads significantly faster than using `task.spawn`.
 
 ## Installation
 
-Learn more about [installation](/introduction#installation).
+Learn more about [installation](/docs/getting-started#installation).
 
 ::: code-group
 

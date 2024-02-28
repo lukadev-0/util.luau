@@ -10,18 +10,18 @@ import { data } from "./package-versions.data.ts";
 
 [View Source](https://github.com/lukadev-0/util.luau/blob/main/packages/option/init.luau)
 
-The `option` package provides the `Option<T>` type, which is a type that represents
-a value that may or may not exist, akin to `T | nil`.
+The `option` package provides the `Option<T>` type, which is a type that
+represents a value that may or may not exist, akin to `T | nil`.
 
-This is useful to avoid `nil`-related bugs, which can cause bugs that are hard to
-track down.
+This is useful to avoid `nil`-related bugs, which can cause bugs that are hard
+to track down.
 
 This utility is inspired by the
 [`Option` type in Rust](https://doc.rust-lang.org/std/option/enum.Option.html).
 
 ## Installation
 
-Learn more about [installation](/introduction#installation).
+Learn more about [installation](/docs/getting-started#installation).
 
 ::: code-group
 
@@ -38,11 +38,11 @@ local foo = util.Option.Some(5)
 
 ## Immutability
 
-The `Option` type is immutable, meaning that once an `Option` is created, it cannot be
-modified.
+The `Option` type is immutable, meaning that once an `Option` is created, it
+cannot be modified.
 
-However, the value inside the `Option` may be mutable, so it is important to be aware
-of this when working with `Option` values.
+However, the value inside the `Option` may be mutable, so it is important to be
+aware of this when working with `Option` values.
 
 ## Typechecking
 
@@ -51,8 +51,8 @@ limitations or bugs, some areas may not typecheck as expected.
 
 ### Callbacks
 
-When calling a function through `:` syntax that takes a callback, the type of the
-parameters aren't inferred.
+When calling a function through `:` syntax that takes a callback, the type of
+the parameters aren't inferred.
 
 ```lua
 local opt = Option.Some(5)
@@ -105,7 +105,8 @@ assert(none:isNone())
 function Option.Some<T>(value: T): Option<T>
 ```
 
-Creates a new `Some` with the given value. A `Some` may contain any value, including `nil`.
+Creates a new `Some` with the given value. A `Some` may contain any value,
+including `nil`.
 
 #### Example
 
@@ -120,8 +121,8 @@ assert(some:isSome())
 function Option.from<T>(value: T | nil): Option<T>
 ```
 
-Creates a new `Option` from the given value. If the value is `nil`, it returns `None`,
-otherwise it returns `Some`.
+Creates a new `Option` from the given value. If the value is `nil`, it returns
+`None`, otherwise it returns `Some`.
 
 #### Example
 
@@ -205,11 +206,13 @@ assert(none:isNone())
 function Option:expect(message: string): T
 ```
 
-Returns the value of the option if it is a `Some`, otherwise it throws an error with
-the given message.
+Returns the value of the option if it is a `Some`, otherwise it throws an error
+with the given message.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -231,7 +234,9 @@ function Option:unwrap(): T
 Returns the value of the option if it is a `Some`, otherwise it throws an error.
 
 ::: warning THROWS
+
 This function may throw an error.
+
 :::
 
 #### Example
@@ -250,7 +255,8 @@ none:unwrap() -- throws "called `Option.unwrap()` on a `None` value"
 function Option:unwrapOr(default: T): T
 ```
 
-Returns the value of the option if it is a `Some`, otherwise it returns the given default.
+Returns the value of the option if it is a `Some`, otherwise it returns the
+given default.
 
 #### Example
 
@@ -268,8 +274,8 @@ assert(none:unwrapOr(10) == 10)
 function Option:unwrapOrElse(f: () -> T): T
 ```
 
-Returns the value of the option if it is a `Some`, otherwise it returns the result of
-the given function.
+Returns the value of the option if it is a `Some`, otherwise it returns the
+result of the given function.
 
 #### Example
 
@@ -306,8 +312,8 @@ assert(double == Option.Some(10))
 function Option:mapOr<U>(default: U, f: (T) -> U): U
 ```
 
-Returns the result of the given function if the option is `Some`, otherwise returns
-the given default value.
+Returns the result of the given function if the option is `Some`, otherwise
+returns the given default value.
 
 #### Example
 
@@ -329,8 +335,8 @@ end) == 15)
 function Option:mapOrElse<U>(default: () -> U, f: (T) -> U): U
 ```
 
-Returns the result of the given function if the option is `Some`, otherwise returns
-the result of calling the default function.
+Returns the result of the given function if the option is `Some`, otherwise
+returns the result of calling the default function.
 
 #### Example
 
@@ -368,8 +374,8 @@ assert(none:andOpt(other) == none)
 function Option:andThen<U>(f: (T) -> Option<U>): Option<U>
 ```
 
-Returns `None` if the option is `None`, otherwise returns the result of the given
-function.
+Returns `None` if the option is `None`, otherwise returns the result of the
+given function.
 
 #### Examples
 
@@ -388,7 +394,8 @@ assert(double == Option.Some(10))
 function Option:filter(f: (T) -> boolean): Option<T>
 ```
 
-Returns `None` if the option is `None`, otherwise calls the function with the value:
+Returns `None` if the option is `None`, otherwise calls the function with the
+value:
 
 - if the function returns `true`, returns the original option
 - if the function returns `false`, returns `None`
@@ -431,8 +438,8 @@ assert(none:orOpt(Option.None) == none)
 function Option:orElse(f: () -> Option<T>): Option<T>
 ```
 
-Returns the option if it is `Some`, otherwise returns the result of calling the given
-function.
+Returns the option if it is `Some`, otherwise returns the result of calling the
+given function.
 
 #### Example
 
@@ -449,7 +456,8 @@ end) == some)
 function Option:xor(other: Option<T>): Option<T>
 ```
 
-Returns `None` if both options are `Some` or `None`, otherwise returns the option.
+Returns `None` if both options are `Some` or `None`, otherwise returns the
+option.
 
 #### Example
 
@@ -469,9 +477,9 @@ function Option:match<U>(f: {
 }): U
 ```
 
-Takes a table containing a `Some` and `None` function. If the option is a `Some`,
-calls the `Some` function with the value of the option, otherwise calls the `None`
-function. The result of the function call is returned.
+Takes a table containing a `Some` and `None` function. If the option is a
+`Some`, calls the `Some` function with the value of the option, otherwise calls
+the `None` function. The result of the function call is returned.
 
 #### Example
 
