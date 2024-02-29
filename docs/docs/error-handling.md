@@ -195,5 +195,6 @@ local doubled = Result.match(res, {
 
 ## Learn More
 
-There are more methods available on the [`Result`](/reference/result) type, see
-the [reference](/reference/result) for more information.
+There are more methods available on the `Result` type, this was just a small
+tour of what you can do with results. If you want to learn more, see the
+[reference](/reference/result) for more information.
