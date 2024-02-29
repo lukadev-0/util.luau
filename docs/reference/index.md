@@ -7,3 +7,4 @@
 | [option](/reference/option)         | Values that may or may not exist.                          |
 | [result](/reference/result)         | Represent fallible operations.                             |
 | [threadpool](/reference/threadpool) | Spawn threads with reuse.                                  |
+| [timer](/reference/timer)           | Schedule code to run at a future time or at an interval.   |

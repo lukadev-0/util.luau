@@ -49,6 +49,7 @@ export default defineConfig({
             { text: "option", link: "/reference/option" },
             { text: "result", link: "/reference/result" },
             { text: "threadpool", link: "/reference/threadpool" },
+            { text: "timer", link: "/reference/timer" },
           ],
         },
       ],
