@@ -3,8 +3,8 @@
 The [`result`](/reference/result) utility can be used for more robust error
 handling.
 
-Errors are represented as values instead of being thrown using `error()`,
-this makes it clear that a function can fail, so you don't forget to handle a
+Errors are represented as values instead of being thrown using `error()`, this
+makes it clear that a function can fail, so you don't forget to handle a
 potential error which may lead to unexpected behavior or crashes.
 
 ## Creating results
@@ -134,8 +134,8 @@ local function doCalculation(x: number): Result<number, string>
 end
 ```
 
-This function will return the result of `divide` if it's `Ok`, otherwise it
-will return the error.
+This function will return the result of `divide` if it's `Ok`, otherwise it will
+return the error. This is the recommended way to propagate errors.
 
 ## Transforming results
 

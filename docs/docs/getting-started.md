@@ -39,3 +39,11 @@ You can also install `util.luau` through `.rbxm` files, which are available in
 the [releases](https://github.com/lukadev-0/util.luau/releases), each package
 has its own `.rbxm` file, and a `util.rbxm` is also available which contains
 every package.
+
+## Learning
+
+The **Guide** is a great place to start to learn about some common utilities and
+how to use them.
+
+If you'd like to see the full list of utilities and their APIs, check out the
+[reference](/reference/).

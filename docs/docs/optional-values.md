@@ -3,8 +3,8 @@
 The [`option`](/reference/option) utility can be used to represent values that
 may or may not exist, akin to using `nil` to represent values that do not exist.
 
-However, using `nil` to represent non-existing values can be error-prone, and
-be harder to work with. The `option` utility provides a simpler and safer way to
+However, using `nil` to represent non-existing values can be error-prone, and be
+harder to work with. The `option` utility provides a simpler and safer way to
 work with optional values.
 
 ## Creating options
@@ -42,12 +42,12 @@ none:unwrap() -- throws "called `Option.unwrap()` on a `None` value"
 If you need to pass a custom error message, you can use the `expect` method:
 
 ```lua
-local some = Option.Some(5)
-print(some:expect("expected a value")) -- 5
+local none = Option.None
+print(none:expect("expected a value")) -- throws "expected a value"
 ```
 
-Sometimes, you want to get the inner value but use a default value if it does not
-exist. You can use the `unwrapOr` method for this:
+Sometimes, you want to get the inner value but use a default value if it does
+not exist. You can use the `unwrapOr` method for this:
 
 ```lua
 local some = Option.Some(5)
@@ -57,9 +57,9 @@ local none = Option.None
 print(none:unwrapOr(10)) -- 10
 ```
 
-The value passed to `unwrapOr` is eagerly evaluated, so it will be evaluated even
-if the option is `Some`. If you need to lazily evaluate the default value, you can
-use the `unwrapOrElse` method:
+The value passed to `unwrapOr` is eagerly evaluated, so it will be evaluated
+even if the option is `Some`. If you need to lazily evaluate the default value,
+you can use the `unwrapOrElse` method:
 
 ```lua
 local some = Option.Some(5)
@@ -85,10 +85,13 @@ some:match({
 })
 ```
 
-Options require you to think about the case where the value does not exist, which
-can help you write more robust code.
+Options require you to think about the case where the value does not exist,
+which can help you write more robust code.
 
 ## Transforming options
+
+Aside from accessing the inner value, you can also apply transformations to
+options and return new options.
 
 You can transform the inner value of an option using the `map` method:
 
@@ -100,8 +103,7 @@ local doubled = some:map(function(value)
 end)
 ```
 
-The value will be doubled if the option is `Some`, and the `None` state will be
-preserved if the option is `None`.
+The `Some` value will be doubles, and the `None` will be preserved.
 
 You can also use the `andThen` method to transform the inner value of an option
 and return a new option:
@@ -118,8 +120,8 @@ local doubled = some:andThen(function(value)
 end)
 ```
 
-The value will be doubled if the option is `Some` and the value is even, and the
-`None` state will be preserved if the option is `None` or the value is odd.
+If the `Some` value is even, it will be doubled. Otherwise, `None` will be
+returned. If the option is `None`, it will be preserved.
 
 You can also use the `match` method from earlier by returning a value from the
 callbacks:
@@ -149,17 +151,18 @@ local even = some:filter(function(value)
 end)
 ```
 
-The value will be preserved if the option is `Some` and the value is even, and the
-`None` state will be returned if the option is `None` or the value is odd.
+The value will be preserved if the option is `Some` and the value is even, and
+the `None` state will be returned if the option is `None` or the value is odd.
 
 ::: tip TYPECHECKING
 
-Luau fails to infer function parameters when passing functions to methods when calling
-them using `:` syntax. [Learn more](/reference/option#typechecking).
+Luau fails to infer function parameters when passing functions to methods when
+calling them using `:` syntax. [Learn more](/reference/option#typechecking).
 
 :::
 
 ## Learn More
 
-There are more methods available on the `Option` type, see the
+There are more methods available on the `Option` type, this was just a small
+tour of what you can do with options. If you want to learn more, see the
 [reference](/reference/option) for more information.
