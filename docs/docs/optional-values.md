@@ -161,7 +161,7 @@ calling them using `:` syntax. [Learn more](/reference/option#typechecking).
 
 :::
 
-## Learn More
+## Learn more
 
 There are more methods available on the `Option` type, this was just a small
 tour of what you can do with options. If you want to learn more, see the
