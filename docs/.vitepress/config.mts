@@ -27,6 +27,7 @@ export default defineConfig({
           items: [
             { text: "Optional Values", link: "/docs/optional-values" },
             { text: "Error Handling", link: "/docs/error-handling" },
+            { text: "Async with Futures", link: "/docs/async-with-futures" },
           ],
         },
       ],
