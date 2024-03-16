@@ -6,265 +6,466 @@ local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
-local function exec(command: string)
-	stdio.write(stdio.style("dim"))
-	stdio.write("$ ")
-	stdio.write(command)
-	stdio.write(stdio.style("reset"))
-	stdio.write("\n")
+local IS_CI = process.env.CI == "true"
 
-	local result = process.spawn(command, {}, {
-		stdio = "forward",
-		shell = true,
-	})
+local WALLY_SCOPE = "lukadev-0"
 
-	stdio.write("\n")
+type Context = {
+	rootDir: string,
+	pkgDir: string,
+	outDir: string,
+	outPkgDir: string,
+	outRbxmDir: string,
+	outWorkDir: string,
+	outWorkPkgDir: string,
 
-	if not result.ok then
-		stdio.write(stdio.style("bold"))
-		stdio.write(stdio.color("red"))
-		stdio.write("\n")
-		stdio.write(`Process exited with code: {result.code}`)
-		stdio.write("\n")
+	packages: { [string]: Package },
 
-		process.exit(result.code)
-	end
-end
+	darkluaConfig: {
+		base: string,
+		bundle: string,
+		default: string,
+		roblox: string,
+	},
+}
 
-local function deepClone<T>(value: T): T
-	if typeof(value) == "table" then
-		local clone = {} :: any
-		for i, v in pairs(value) do
-			clone[i] = deepClone(v)
+type Package = {
+	path: string,
+	config: PackageConfig,
+}
+
+type PackageConfig = {
+	name: string,
+	description: string,
+	version: string,
+
+	types: { string }?,
+	bundle: string,
+	dependencies: { string }?,
+}
+
+type ProgressReporter = {
+	report: (message: string) -> (),
+	log: (message: string) -> (),
+	finish: () -> (),
+	fail: (message: string) -> (),
+}
+
+local function noop() end
+
+local function getPackages(dir: string): { [string]: Package }
+	local packages = {}
+	for _, entry in fs.readDir(dir) do
+		if fs.isDir(`{dir}/{entry}`) then
+			local configFile = fs.readFile(`{dir}/{entry}/config.toml`)
+			local config = serde.decode("toml", configFile) :: PackageConfig
+
+			packages[config.name] = {
+				path = `{dir}/{entry}`,
+				config = config,
+			}
 		end
-		return clone
-	else
-		return value
 	end
+	return packages
 end
 
-local function createDarkluaConfig()
-	local baseConfig = serde.decode("json", fs.readFile("base.darklua.json"))
+local function createBuild(rootDir: string): Context
+	local ctx = {}
 
-	local robloxConfig = deepClone(baseConfig)
-	table.insert(robloxConfig.rules, 1, {
-		rule = "inject_global_value",
-		identifier = "UTIL_TARGET",
-		value = "roblox",
-	})
-	table.insert(robloxConfig.rules, 1, {
+	ctx.rootDir = rootDir
+	ctx.pkgDir = `{rootDir}/packages`
+	ctx.outDir = `{rootDir}/build`
+	ctx.outPkgDir = `{ctx.outDir}/pkg`
+	ctx.outRbxmDir = `{ctx.outDir}/rbxm`
+	ctx.outWorkDir = `{ctx.outDir}/work`
+	ctx.outWorkPkgDir = `{ctx.outWorkDir}/pkg`
+
+	ctx.packages = getPackages(ctx.pkgDir)
+
+	ctx.darkluaConfig = {}
+	ctx.darkluaConfig.base = `{rootDir}/base.darklua.json`
+	ctx.darkluaConfig.default = `{ctx.outWorkDir}/default.darklua.json`
+	ctx.darkluaConfig.roblox = `{ctx.outWorkDir}/roblox.darklua.json`
+	ctx.darkluaConfig.bundle = `{ctx.outWorkDir}/bundle.darklua.json`
+
+	return ctx
+end
+
+local function prepareBuild(ctx: Context): ()
+	if fs.isDir(ctx.outDir) then
+		fs.removeDir(ctx.outDir)
+	end
+
+	fs.writeDir(ctx.outDir)
+	fs.writeDir(ctx.outPkgDir)
+	fs.writeDir(ctx.outRbxmDir)
+	fs.writeDir(ctx.outWorkDir)
+	fs.writeDir(ctx.outWorkPkgDir)
+
+	local baseDarkluaConfigFile = fs.readFile(ctx.darkluaConfig.base)
+	local baseDarkluaConfig = serde.decode("json", baseDarkluaConfigFile)
+
+	local defaultDarkluaConfig = table.clone(baseDarkluaConfig)
+	fs.writeFile(ctx.darkluaConfig.default, serde.encode("json", defaultDarkluaConfig, true))
+
+	local robloxDarkluaConfig = table.clone(baseDarkluaConfig)
+	robloxDarkluaConfig.rules = table.clone(baseDarkluaConfig.rules)
+
+	table.insert(robloxDarkluaConfig.rules, {
 		rule = "convert_require",
-		current = "path",
+		current = {
+			name = "path",
+		},
 		target = {
 			name = "roblox",
+
+			-- Luau only supports requires with property-style indexing,
+			-- this is important for typechecking.
 			indexing_style = "property",
 		},
 	})
 
-	fs.writeFile("build/src/roblox.darklua.json", serde.encode("json", robloxConfig))
+	fs.writeFile(ctx.darkluaConfig.roblox, serde.encode("json", robloxDarkluaConfig, true))
 
-	local defaultConfig = deepClone(baseConfig)
-	fs.writeFile("build/src/default.darklua.json", serde.encode("json", defaultConfig))
+	local bundleDarkluaConfig = table.clone(baseDarkluaConfig)
 
-	local bundleConfig = deepClone(baseConfig)
-	bundleConfig.bundle = {
+	bundleDarkluaConfig.bundle = {
 		require_mode = "path",
-		modules_identifier = "__MODULES",
 		excludes = { "@lune/**" },
 	}
 
-	fs.writeFile("build/src/bundle.darklua.json", serde.encode("json", bundleConfig))
+	fs.writeFile(ctx.darkluaConfig.bundle, serde.encode("json", bundleDarkluaConfig, true))
 end
 
-local function copyPackageSrc(src: string, dest: string)
-	for _, file in fs.readDir(src) do
-		if file:match("test%.luau$") or file == "config.toml" then
-			continue
-		end
-
-		if fs.isDir(`{src}/{file}`) then
-			fs.writeDir(`{dest}/{file}`)
-			copyPackageSrc(`{src}/{file}`, `{dest}/{file}`)
+local function copyPackageSource(src: string, dest: string): ()
+	fs.writeDir(dest)
+	for _, entry in fs.readDir(src) do
+		if fs.isDir(`{src}/{entry}`) then
+			fs.writeDir(`{dest}/{entry}`)
+			copyPackageSource(`{src}/{entry}`, `{dest}/{entry}`)
 		else
-			fs.copy(`{src}/{file}`, `{dest}/{file}`)
+			if entry:match("%.luau$") and not entry:match("%.test.luau$") then
+				local contents = fs.readFile(`{src}/{entry}`)
+				fs.writeFile(`{dest}/{entry}`, "--!strict\n" .. contents)
+			end
 		end
 	end
 end
 
-local function prepareBuild()
-	if fs.isDir("build") then
-		fs.removeDir("build")
-	end
+local function spawnCommand(progress: ProgressReporter, command: string): ()
+	local result = process.spawn(command, {}, {
+		shell = true,
+	})
 
-	fs.writeDir("build/src/pkg")
-	fs.writeDir("build/pkg")
-	fs.writeDir("build/rbxm")
+	if result.ok then
+		if result.stderr ~= "" then
+			progress.log((result.stderr:gsub("%s$", "")))
+		end
+	else
+		progress.fail(`command failed with {result.code}`)
+		stdio.write("\n")
+		stdio.write(stdio.style("bold"))
+		stdio.write(command)
+		stdio.write("\n\n")
+		stdio.write(stdio.style("reset"))
+		stdio.write(stdio.style("bold"))
+		stdio.write("stdout\n")
+		stdio.write(stdio.style("reset"))
+		stdio.write(result.stdout)
+		stdio.write("\n")
+		stdio.write(stdio.style("bold"))
+		stdio.write("stderr\n")
+		stdio.write(stdio.style("reset"))
+		stdio.write(result.stderr)
 
-	createDarkluaConfig()
-
-	for _, dir in fs.readDir("packages") do
-		fs.writeDir(`build/src/pkg/{dir}`)
-		copyPackageSrc(`packages/{dir}`, `build/src/pkg/{dir}`)
+		stdio.write("\x1B[?25h")
+		process.exit(1)
 	end
 end
 
-local function buildPackage(packageName: string)
-	local packagePath = `packages/{packageName}`
-	local packageBuildSrc = `build/src/pkg/{packageName}`
-	local packageBuildOut = `build/pkg/{packageName}`
-
-	stdio.write(stdio.style("bold"))
-	stdio.write(stdio.color("blue"))
-	stdio.write("=> ")
-	stdio.write(stdio.style("reset"))
-	stdio.write(stdio.style("bold"))
-	stdio.write(packagePath)
-	stdio.write("\n\n")
-	stdio.write(stdio.style("reset"))
-
-	fs.writeDir(packageBuildOut)
-
-	local packageConfig = serde.decode("toml", fs.readFile(`{packagePath}/config.toml`))
-
-	local wallyManifest = {
-		package = {
-			name = `lukadev-0/{packageConfig.name}`,
-			version = packageConfig.version,
-			description = packageConfig.description,
-			license = "MIT",
-			authors = { "LukaDev" },
-			realm = "shared",
-			registry = "https://github.com/UpliftGames/wally-index",
-		},
-		dependencies = {},
-	}
-
-	print("generating wally.toml")
-
-	if packageConfig.dependencies ~= nil then
-		for _, dependency in pairs(packageConfig.dependencies) do
-			local dependencyPath = `packages/{dependency}`
-			local dependencyConfig = serde.decode("toml", fs.readFile(`{dependencyPath}/config.toml`))
-			local dependencyVersion = dependencyConfig.version
-
-			wallyManifest.dependencies[dependency] = `lukadev-0/{dependency}@{dependencyVersion}`
+local function createLinkingFile(targetPackage: PackageConfig, targetPath: string): string
+	local s = ""
+	s ..= "--!strict\n"
+	s ..= `local pkg = require("{targetPath}")\n`
+	if targetPackage.types ~= nil then
+		for _, type in targetPackage.types do
+			s ..= `export type {type} = pkg.{type}\n`
 		end
 	end
+	s ..= "return pkg\n"
 
-	fs.writeFile(`{packageBuildOut}/wally.toml`, serde.encode("toml", wallyManifest))
-
-	print("processing files\n")
-
-	exec(`darklua process {packageBuildSrc} {packageBuildOut}/roblox --config build/src/roblox.darklua.json`)
-	exec(`darklua process {packageBuildSrc} {packageBuildOut}/default --config build/src/default.darklua.json`)
-
-	print("generating linker files")
-
-	local initFile = ""
-	initFile ..= "--!strict\n"
-	initFile ..= 'local pkg = require("./default")\n'
-
-	if packageConfig.types then
-		for _, type in packageConfig.types do
-			initFile ..= `export type {type} = pkg.{type}\n`
-		end
-	end
-
-	initFile ..= "return pkg\n"
-
-	fs.writeFile(`{packageBuildOut}/init.luau`, initFile)
-
-	if packageConfig.dependencies ~= nil then
-		for _, dependency in pairs(packageConfig.dependencies) do
-			local dependencyLinker = ""
-			dependencyLinker ..= "--!strict\n"
-			dependencyLinker ..= `return require("../{dependency}")\n`
-
-			fs.writeFile(`{packageBuildOut}/{dependency}.luau`, dependencyLinker)
-		end
-	end
-
-	local rojoProject = {
-		name = packageConfig.name,
-		tree = {
-			["$path"] = "./roblox",
-		},
-	}
-
-	fs.writeFile(`{packageBuildOut}/default.project.json`, serde.encode("json", rojoProject))
-
-	print("copying LICENSE")
-	fs.copy("LICENSE", `{packageBuildOut}/LICENSE`)
-
-	print("generating rbxm")
-	print("")
-	exec(`rojo build {packageBuildOut} --output build/rbxm/{packageConfig.name}.rbxm`)
-
-	print(`package built to {stdio.style("bold")}{packageBuildOut}{stdio.style("reset")}`)
-	print("")
+	return s
 end
 
-local function buildBundle()
-	stdio.write(stdio.style("bold"))
-	stdio.write(stdio.color("blue"))
-	stdio.write("=> ")
-	stdio.write(stdio.style("reset"))
-	stdio.write(stdio.style("bold"))
-	stdio.write("generating bundle")
-	stdio.write("\n\n")
-	stdio.write(stdio.style("reset"))
+local function buildPackage(ctx: Context, progress: ProgressReporter, package: Package): ()
+	progress.report("copying source files")
 
-	local entrypoint = ""
-	entrypoint ..= "return {\n"
+	local workPkgDir = `{ctx.outWorkPkgDir}/{package.config.name}`
+	copyPackageSource(package.path, workPkgDir)
 
-	for _, dir in fs.readDir("packages") do
-		local packageConfig = serde.decode("toml", fs.readFile(`packages/{dir}/config.toml`))
-		if packageConfig.bundle then
-			entrypoint ..= `  {packageConfig.bundle} = require("../pkg/{dir}/default"),\n`
+	local outDir = `{ctx.outPkgDir}/{package.config.name}`
+	fs.writeDir(outDir)
+
+	progress.report("processing files for default")
+	spawnCommand(
+		progress,
+		`darklua process -c {ctx.darkluaConfig.default} {workPkgDir} {outDir}/default/{package.config.name}`
+	)
+
+	progress.report("processing files for roblox")
+	spawnCommand(
+		progress,
+		`darklua process -c {ctx.darkluaConfig.roblox} {workPkgDir} {outDir}/roblox/{package.config.name}`
+	)
+
+	if package.config.dependencies then
+		progress.report("creating dependency linking files for default")
+		for _, dependencyName in package.config.dependencies do
+			local dependency = ctx.packages[dependencyName]
+			if dependency == nil then
+				progress.fail(`dependency {dependencyName} not found`)
+				process.exit(1)
+			end
+
+			fs.writeFile(
+				`{outDir}/default/{dependencyName}.luau`,
+				createLinkingFile(dependency.config, `../../{dependencyName}`)
+			)
 		end
 	end
 
-	entrypoint ..= "}\n"
+	progress.report("creating main linking file for default")
+	do
+		fs.writeFile(`{outDir}/init.luau`, createLinkingFile(package.config, `./default/{package.config.name}`))
+	end
 
-	local bundleSrcPath = "build/src/util.luau"
-	local bundleOutPath = "build/util.luau"
+	progress.report("creating default.project.json for roblox")
+	do
+		local projectJson = {
+			name = package.config.name,
+			tree = {
+				["$path"] = `./roblox/{package.config.name}`,
+			},
+		}
 
-	fs.writeFile(bundleSrcPath, entrypoint)
+		fs.writeFile(`{outDir}/default.project.json`, serde.encode("json", projectJson, true))
+	end
 
-	exec(`darklua process {bundleSrcPath} {bundleOutPath} --config build/src/bundle.darklua.json`)
-	print(`bundled to {stdio.style("bold")}{bundleOutPath}{stdio.style("reset")}`)
-	print("")
+	progress.report("creating wally.toml")
+	do
+		local wallyToml = {
+			package = {
+				name = `{WALLY_SCOPE}/{package.config.name}`,
+				version = package.config.version,
+				description = package.config.description,
+				license = "MIT",
+				authors = { "LukaDev" },
+				realm = "shared",
+				registry = "https://github.com/UpliftGames/wally-index",
+			},
+			dependencies = {},
+		}
+
+		if package.config.dependencies then
+			for _, dependencyName in package.config.dependencies do
+				local dependency = ctx.packages[dependencyName]
+				if dependency == nil then
+					progress.fail(`dependency {dependencyName} not found`)
+					process.exit(1)
+				end
+
+				wallyToml.dependencies[dependencyName] = `{WALLY_SCOPE}/{dependencyName}@{dependency.config.version}`
+			end
+		end
+
+		fs.writeFile(`{outDir}/wally.toml`, serde.encode("toml", wallyToml, true))
+	end
+
+	progress.report("copying LICENSE")
+	fs.copy(`{ctx.rootDir}/LICENSE`, `{outDir}/LICENSE`)
+
+	progress.finish()
 end
 
-local function buildRbxmBundle()
-	stdio.write(stdio.style("bold"))
-	stdio.write(stdio.color("blue"))
-	stdio.write("=> ")
-	stdio.write(stdio.style("reset"))
-	stdio.write(stdio.style("bold"))
-	stdio.write("generating rbxm bundle")
-	stdio.write("\n\n")
-	stdio.write(stdio.style("reset"))
-
+local function buildRbxms(ctx: Context, progress: ProgressReporter): ()
 	local folder = roblox.Instance.new("Folder")
 	folder.Name = "util"
-	for _, file in fs.readDir("build/rbxm") do
-		local model = roblox.deserializeModel(fs.readFile(`build/rbxm/{file}`))
-		for _, inst in model do
-			inst.Parent = folder
+
+	for _, package in ctx.packages do
+		progress.report(`building RBXM for {package.config.name}`)
+
+		local rbxmPath = `{ctx.outRbxmDir}/{package.config.name}.rbxm`
+
+		spawnCommand(progress, `rojo build {ctx.outPkgDir}/{package.config.name}/default.project.json -o {rbxmPath}`)
+
+		local instances = roblox.deserializeModel(fs.readFile(rbxmPath))
+		for _, instance in instances do
+			instance.Parent = folder
 		end
 	end
-	fs.writeFile("build/util.rbxm", roblox.serializeModel({ folder }))
 
-	print(`rbxm saved to {stdio.style("bold")}build/util.rbxm{stdio.style("reset")}`)
-	print("")
+	progress.report("creating bundle RBXM")
+	fs.writeFile(`{ctx.outDir}/util.rbxm`, roblox.serializeModel({ folder }))
+
+	progress.finish()
 end
 
-prepareBuild()
+local function buildBundle(ctx: Context, progress: ProgressReporter)
+	progress.report("creating bundle linking file")
+	do
+		local s = ""
+		s ..= "--!strict\n"
+		s ..= "local util = {}\n"
 
-for _, dir in fs.readDir("packages") do
-	buildPackage(dir)
+		for _, package in ctx.packages do
+			s ..= `local pkg_{package.config.name} = require("../pkg/{package.config.name}")\n`
+
+			if package.config.types ~= nil then
+				for _, type in package.config.types do
+					s ..= `export type {type} = pkg_{package.config.name}.{type}\n`
+				end
+			end
+
+			s ..= `util.{package.config.bundle} = pkg_{package.config.name}\n`
+		end
+
+		s ..= "return util\n"
+
+		fs.writeFile(`{ctx.outWorkDir}/util.entry.luau`, s)
+	end
+
+	progress.report("creating bundle")
+	spawnCommand(
+		progress,
+		`darklua process -c {ctx.darkluaConfig.bundle} {ctx.outWorkDir}/util.entry.luau {ctx.outWorkDir}/util.bundle.luau`
+	)
+
+	progress.report("finalizing bundle")
+	do
+		local contents = fs.readFile(`{ctx.outWorkDir}/util.bundle.luau`)
+		fs.writeFile(`{ctx.outDir}/util.luau`, "--!strict\n" .. contents)
+	end
+
+	progress.finish()
 end
 
-buildBundle()
-buildRbxmBundle()
+local function createProgressReporter(name: string): ProgressReporter
+	if IS_CI then
+		return {
+			report = noop,
+			log = print,
+			finish = function()
+				print(`finished {name}`)
+			end,
+			fail = function(message)
+				print(`failed {name}: {message}`)
+			end,
+		}
+	else
+		stdio.write(stdio.style("bold"))
+		stdio.write(stdio.color("yellow"))
+		stdio.write("building")
+		stdio.write(stdio.style("reset"))
+		stdio.write(" ")
+		stdio.write(name)
+		stdio.write(stdio.style("reset"))
+
+		local offset = 11 + #name
+
+		local lastMessage = ""
+
+		return {
+			report = function(message)
+				lastMessage = message
+
+				stdio.write(`\x1B[{offset}G`)
+				stdio.write("\x1B[0K")
+				stdio.write(stdio.style("dim"))
+				stdio.write(message)
+				stdio.write(stdio.style("reset"))
+			end,
+			log = function(message)
+				stdio.write("\x1B[1G")
+				stdio.write("\x1B[0K")
+				print(message)
+				stdio.write(stdio.style("bold"))
+				stdio.write(stdio.color("yellow"))
+				stdio.write("building")
+				stdio.write(stdio.style("reset"))
+				stdio.write(" ")
+				stdio.write(name)
+				stdio.write(" ")
+				stdio.write(stdio.style("dim"))
+				stdio.write(lastMessage)
+				stdio.write(stdio.style("reset"))
+			end,
+			finish = function()
+				stdio.write("\x1B[1G")
+				stdio.write(stdio.style("bold"))
+				stdio.write(stdio.color("blue"))
+				stdio.write("finished")
+				stdio.write(stdio.style("reset"))
+				stdio.write(" ")
+				stdio.write(name)
+				stdio.write("\x1B[0K")
+				stdio.write("\n")
+			end,
+			fail = function(message)
+				stdio.write("\x1B[1G")
+				stdio.write("\x1B[0K")
+				stdio.write(stdio.style("bold"))
+				stdio.write(stdio.color("red"))
+				stdio.write("  failed")
+				stdio.write(stdio.style("reset"))
+				stdio.write(" ")
+				stdio.write(name)
+				stdio.write(" ")
+				stdio.write(stdio.style("dim"))
+				stdio.write(message)
+				stdio.write("\x1B[0K")
+				stdio.write("\n")
+			end,
+		}
+	end
+end
+
+local function build(rootDir: string): ()
+	stdio.write("\x1B[?25l")
+
+	local ctx = createBuild(rootDir)
+
+	local pkgCount = 0
+	for _ in ctx.packages do
+		pkgCount += 1
+	end
+
+	stdio.write("building ")
+	stdio.write(stdio.style("bold"))
+	stdio.write(`{pkgCount}`)
+	stdio.write(stdio.style("reset"))
+	stdio.write(" packages")
+	stdio.write("\n\n")
+
+	prepareBuild(ctx)
+
+	for _, package in ctx.packages do
+		local progress = createProgressReporter(package.config.name)
+		buildPackage(ctx, progress, package)
+	end
+
+	stdio.write("\n")
+
+	local rbxmProgress = createProgressReporter("rbxm")
+	buildRbxms(ctx, rbxmProgress)
+
+	local bundleProgress = createProgressReporter("bundle")
+	buildBundle(ctx, bundleProgress)
+
+	stdio.write("\n")
+
+	print("build finished")
+
+	stdio.write("\x1B[?25h")
+end
+
+build(process.cwd)

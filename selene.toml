@@ -2,3 +2,4 @@ std = "luau+roblox"
 
 [config]
 global_usage = { ignore_pattern = "UTIL_TARGET" }
+bad_string_escape = "allow"
