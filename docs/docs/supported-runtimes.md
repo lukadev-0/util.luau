@@ -23,6 +23,9 @@ In order to use the correct library implementations for the current runtime,
 `std` will automatically try to detect the current runtime, this is done using
 the following rules:
 
+- if `_G.UTIL_TARGET` is set to `roblox`, then the Roblox implementations are
+  used. This global is injected for Roblox builds meaning that runtime detection
+  is skipped.
 - if `typeof(script) == "Instance"` is true, then the Roblox implementations are
   used
 - if `_VERSION` starts with the string `"lune "`, case-insensitive, then the
