@@ -35,42 +35,6 @@ cannot be modified.
 However, the value inside the `Option` may be mutable, so it is important to be
 aware of this when working with `Option` values.
 
-## Typechecking
-
-The `Option` type aims to be as type-safe as possible, however due to Luau
-limitations or bugs, some areas may not typecheck as expected.
-
-### Callbacks
-
-When calling a function through `:` syntax that takes a callback, the type of
-the parameters aren't inferred.
-
-```lua
-local opt = Option.Some(5)
-local mapped = opt:map(function(value)
-  -- ┌────────────────────────── ^^^^^
-  -- └ this is typed as `a` instead of `number`
-  return value * 2
-end)
-```
-
-This can be worked around by calling the function using `.` syntax:
-
-```lua
-local opt = Option.Some(5)
-
-local mapped = Option.map(opt, function(value)
-  -- ┌───────────────────────────────── ^^^^^
-  -- └ correctly typed as `number`
-  return value * 2
-end)
-
--- the following is equivalent
-local mapped = opt.map(opt, function(value)
-  return value * 2
-end)
-```
-
 ## Static Properties
 
 ### Option.None

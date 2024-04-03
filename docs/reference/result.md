@@ -36,42 +36,6 @@ cannot be modified.
 However, the value inside the `Result` may be mutable, so it is important to be
 aware of this when working with `Result` values.
 
-## Typechecking
-
-The `Result` type aims to be as type-safe as possible, however due to Luau
-limitations or bugs, some areas may not typecheck as expected.
-
-### Callbacks
-
-When calling a function through `:` syntax that takes a callback, the type of
-the parameters aren't inferred.
-
-```lua
-local res = Result.Ok(5)
-local mapped = res:map(function(value)
-  -- ┌───────────────────────── ^^^^^
-  -- └ this is typed as `a` instead of `number`
-  return value * 2
-end)
-```
-
-This can be worked around by calling the function using `.` syntax:
-
-```lua
-local res = Result.Ok(5)
-
-local mapped = Result.map(res, function(value)
-  -- ┌───────────────────────────────── ^^^^^
-  -- └ correctly typed as `number`
-  return value * 2
-end)
-
--- the following is equivalent
-local mapped = res.map(res, function(value)
-  return value * 2
-end)
-```
-
 ## Static Functions
 
 ### Result.Ok

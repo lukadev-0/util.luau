@@ -20,6 +20,7 @@ export default defineConfig({
           items: [
             { text: "Getting Started", link: "/docs/getting-started" },
             { text: "Supported Runtimes", link: "/docs/supported-runtimes" },
+            { text: "Typechecking", link: "/docs/typechecking" },
           ],
         },
         {
