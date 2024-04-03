@@ -9,41 +9,99 @@ to schedule code to run at a later time, this functionality is provided by the
 `task` global on Roblox, and the `@lune/task` builtin on Lune.
 
 In order to support all of these runtimes, util.luau provides the
-[`env`](/reference/env) package. This package provides information about the
-current runtime, and provides standard libraries that can be overridden by the
-user to support different runtimes.
+[`std`](/reference/std) package. This package provides common interfaces for
+standard libraries, and default implementations for supported runtimes.
+
+Currently, the following runtimes are supported out-of-the-box:
+
+- [Roblox](https://create.roblox.com/docs/reference/engine)
+- [Lune](https://lune-org.github.io/docs)
 
 ## Runtime Detection
 
 In order to use the correct library implementations for the current runtime,
-`env` will automatically try to detect the current runtime, this is done using
+`std` will automatically try to detect the current runtime, this is done using
 the following rules:
 
-- if `typeof(script) == "Instance"` is true, then the runtime is `roblox`
+- if `typeof(script) == "Instance"` is true, then the Roblox implementations are
+  used
 - if `_VERSION` starts with the string `"lune "`, case-insensitive, then the
-  runtime is `lune`
-- otherwise, the runtime is `unknown`
+  Lune implementations are used.
+- otherwise, the runtime is unknown, and no libraries are implemented.
 
-## Implementing libraries
+## Defining Runtimes
 
 If you need to use util.luau in a runtime that is not supported out-of-the-box,
-you need to add custom library implementations to the `env` package. This can be
-done by calling one of the
-[implement functions on the `env` package](/reference/env#libraries).
+You need to define the runtime yourself and implement the standard libraries.
 
-For example, to implement the `task` library, you would call `env.implementTask`
-with a table containing the implementation of the library:
+This is done using the [`std.defineRuntime`](/reference/std#std-defineruntime)
+function.
 
 ```lua
-local env = require(...)
+local std = require(...)
 
-env.implementTask({
-  cancel: ...,
-  defer: ...,
-  delay: ...,
-  spawn: ...,
-  wait: ...,
+local myRuntime = std.defineRuntime({
+  name = "my-runtime",
+  libs = {
+    task = {
+      cancel = ...,
+      defer = ...,
+      delay = ...,
+      spawn = ...,
+      wait = ...,
+    },
+  },
 })
 ```
 
-It is important that this is done before any code that uses the library is run.
+Not every function needs to be implemented, however an error will be thrown if
+you try to use a function that is not implemented.
+
+## Using Runtimes
+
+Once you've defined a runtime, you can use it by calling
+[`std.setRuntime`](/reference/std#std-setruntime).
+
+```lua
+std.setRuntime(myRuntime)
+```
+
+:::warning
+
+It is important to call this function **_before_** any code that uses the
+standard libraries, otherwise you will get errors.
+
+:::
+
+## Using the Standard Libraries
+
+If you'd like to use the standard libraries, you can do so by requiring the
+[`std`](/reference/std) module and accessing the libraries.
+
+```lua
+local std = require(...)
+
+std.task.spawn(...)
+```
+
+You may also alias the standard libraries to a shorter name if you prefer.
+
+```lua
+local task = std.task
+```
+
+However, do not alias functions directly, as this will break the runtime
+setting functionality if the runtime is set after your module code is ran.
+
+```lua
+-- do not do this
+local spawn = std.task.spawn
+```
+
+:::info
+
+It is recommended to use one of the other utilities that wrap the standard
+libraries, such as [`threadpool`](/reference/threadpool) or
+[`timer`](/reference/timer), as these provide a more ergonomic API.
+
+:::
