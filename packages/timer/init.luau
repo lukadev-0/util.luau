@@ -11,7 +11,6 @@ function timer.delay(duration: number): Future.Future<number>
 end
 
 function timer.interval<T...>(duration: number, f: (T...) -> (), ...: T...): () -> ()
-	-- selene: allow(shadowing)
 	local function inner(duration: number, f: (T...) -> (), ...: T...)
 		local nextTick = os.clock() + duration
 		while true do

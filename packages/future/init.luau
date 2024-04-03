@@ -81,7 +81,6 @@ end
 function Future.spawn(f, ...)
 	local self = Future.never()
 
-	-- selene: allow(shadowing)
 	local function inner(self: Future<any>, f: (...any) -> any, ...)
 		finish(self, f(...))
 	end
@@ -117,7 +116,6 @@ end
 	containing the results of the given futures.
 ]=]
 function Future.all(futures)
-	-- selene: allow(shadowing)
 	local function inner(futures: { Future<any> })
 		local result = table.create(#futures)
 		for _, fut: any in futures do
