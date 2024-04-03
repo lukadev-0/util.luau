@@ -1,5 +1,0 @@
-name = "env"
-description = "Environment information and runtime-agnostic standard libraries."
-version = "1.0.0"
-
-types = ["Libs", "TaskLib"]

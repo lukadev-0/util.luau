@@ -1,8 +1,8 @@
 local Future = require("../future")
-local env = require("../env")
+local std = require("../std")
 local threadpool = require("../threadpool")
 
-local task = env.libs.task
+local task = std.task
 
 local timer = {}
 

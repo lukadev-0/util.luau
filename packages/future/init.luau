@@ -1,8 +1,8 @@
 local Option = require("../option")
-local env = require("../env")
+local std = require("../std")
 local threadpool = require("../threadpool")
 
-local task = env.libs.task
+local task = std.task
 
 export type Future<T> = typeof(setmetatable(
 	{} :: {

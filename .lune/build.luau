@@ -106,7 +106,7 @@ local function prepareBuild(ctx: Context): ()
 	fs.writeFile(ctx.darkluaConfig.default, serde.encode("json", defaultDarkluaConfig, true))
 
 	local robloxDarkluaConfig = table.clone(baseDarkluaConfig)
-	robloxDarkluaConfig.rules = table.clone(baseDarkluaConfig.rules)
+	robloxDarkluaConfig.rules = table.clone(baseDarkluaConfig.rules) :: { any }
 
 	table.insert(robloxDarkluaConfig.rules, {
 		rule = "convert_require",
@@ -120,6 +120,12 @@ local function prepareBuild(ctx: Context): ()
 			-- this is important for typechecking.
 			indexing_style = "property",
 		},
+	})
+
+	table.insert(robloxDarkluaConfig.rules, 1, {
+		rule = "inject_global_value",
+		identifier = "UTIL_TARGET",
+		value = "roblox",
 	})
 
 	fs.writeFile(ctx.darkluaConfig.roblox, serde.encode("json", robloxDarkluaConfig, true))

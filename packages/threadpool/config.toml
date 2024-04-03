@@ -2,4 +2,4 @@ name = "threadpool"
 description = "Spawn threads using a thread pool"
 version = "1.0.0"
 
-dependencies = ["env"]
+dependencies = ["std"]

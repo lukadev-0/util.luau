@@ -2,4 +2,4 @@ name = "timer"
 description = "Schedule functions to be called at a future time."
 version = "1.0.0"
 
-dependencies = ["env", "future", "threadpool"]
+dependencies = ["std", "future", "threadpool"]
