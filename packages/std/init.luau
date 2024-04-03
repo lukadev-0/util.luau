@@ -13,7 +13,7 @@ local function detectRuntime(): Runtime?
 		return require("./default-runtimes/roblox")
 	end
 
-	if _VERSION:sub(1, 5):lower() == "lune " then
+	if string.sub(_VERSION, 1, 5):lower() == "lune " then
 		return require("./default-runtimes/lune")
 	end
 

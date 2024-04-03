@@ -16,7 +16,7 @@ end)
 describe("setRuntime", function()
 	test("sets the runtime", function()
 		local luneRuntime = std.runtime
-		assert(luneRuntime ~= nil)
+		assert(luneRuntime ~= nil, "should have runtime")
 
 		local runtime = std.defineRuntime({ name = "test", libs = {} })
 
