@@ -6,7 +6,7 @@ outline: [2, 3]
 import { data } from "./package-versions.data.ts";
 </script>
 
-# env
+# std
 
 [View Source](https://github.com/lukadev-0/util.luau/blob/main/packages/std/init.luau)
 
