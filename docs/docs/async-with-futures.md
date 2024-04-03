@@ -29,8 +29,8 @@ To create a future that is pending, and will never resolve, you can use
 local fut = Future.never()
 ```
 
-Though, we want our futures to do something, to do this, we can use `Future.spawn`
-which will spawn a new thread and run the given function:
+Though, we want our futures to do something, to do this, we can use
+`Future.spawn` which will spawn a new thread and run the given function:
 
 ```lua
 local function httpGet(url)
@@ -62,9 +62,9 @@ end
 
 ::: tip MEMORY USAGE
 
-The above code will create a closure for each call to `httpGet`, which may
-cause high memory usage. To avoid this, you can pass any values the function
-needs as arguments:
+The above code will create a closure for each call to `httpGet`, which may cause
+high memory usage. To avoid this, you can pass any values the function needs as
+arguments:
 
 ```lua
 function httpGet(url: string): Future.Future<string>
@@ -84,8 +84,9 @@ local function httpGet(url: string): Future.Future<string>
 end
 ```
 
-This will allow Luau to [cache the function](https://luau-lang.org/performance#closure-caching)
-and reuse it across calls, reducing memory usage.
+This will allow Luau to
+[cache the function](https://luau-lang.org/performance#closure-caching) and
+reuse it across calls, reducing memory usage.
 
 :::
 
@@ -94,8 +95,9 @@ and reuse it across calls, reducing memory usage.
 We now have futures that will resolve at some point, but how do we access the
 inner value?
 
-One way is the `now` method, which will return an [option](/docs/optional-values)
-containing the current value, or `None` if the future is still pending:
+One way is the `now` method, which will return an
+[option](/docs/optional-values) containing the current value, or `None` if the
+future is still pending:
 
 ```lua
 local fut = Future.new(5)
@@ -147,8 +149,8 @@ print(values[1]) -- 5
 print(values[2]) -- 10
 ```
 
-This will wait for all given futures to resolve, and resolves to an array of
-the resolved values.
+This will wait for all given futures to resolve, and resolves to an array of the
+resolved values.
 
 The `race` utility can be used to wait for the first future in an array to
 resolve:
@@ -163,16 +165,16 @@ local value = fut:await()
 print(value) -- 5
 ```
 
-This will wait for the first future to resolve, and resolves to the value of
-the first resolved future.
+This will wait for the first future to resolve, and resolves to the value of the
+first resolved future.
 
 ## Error handling
 
-Futures do not support throwing errors, to handle errors, you can use futures
-in combination with [results](/docs/error-handling).
+Futures do not support throwing errors, to handle errors, you can use futures in
+combination with [results](/docs/error-handling).
 
-For example, the following code will call a yielding function that may fail
-and wraps it in a future and result:
+For example, the following code will call a yielding function that may fail and
+wraps it in a future and result:
 
 ```lua
 local fut = Future.spawn(Result.try, httpGet, "https://google.com/")
