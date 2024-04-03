@@ -23,7 +23,6 @@ type Context = {
 
 	darkluaConfig: {
 		base: string,
-		bundle: string,
 		default: string,
 		roblox: string,
 	},
@@ -40,7 +39,6 @@ type PackageConfig = {
 	version: string,
 
 	types: { string }?,
-	bundle: string,
 	dependencies: { string }?,
 }
 
@@ -86,7 +84,6 @@ local function createBuild(rootDir: string): Context
 	ctx.darkluaConfig.base = `{rootDir}/base.darklua.json`
 	ctx.darkluaConfig.default = `{ctx.outWorkDir}/default.darklua.json`
 	ctx.darkluaConfig.roblox = `{ctx.outWorkDir}/roblox.darklua.json`
-	ctx.darkluaConfig.bundle = `{ctx.outWorkDir}/bundle.darklua.json`
 
 	return ctx
 end
@@ -126,15 +123,6 @@ local function prepareBuild(ctx: Context): ()
 	})
 
 	fs.writeFile(ctx.darkluaConfig.roblox, serde.encode("json", robloxDarkluaConfig, true))
-
-	local bundleDarkluaConfig = table.clone(baseDarkluaConfig)
-
-	bundleDarkluaConfig.bundle = {
-		require_mode = "path",
-		excludes = { "@lune/**" },
-	}
-
-	fs.writeFile(ctx.darkluaConfig.bundle, serde.encode("json", bundleDarkluaConfig, true))
 end
 
 local function copyPackageSource(src: string, dest: string): ()
@@ -310,45 +298,6 @@ local function buildRbxms(ctx: Context, progress: ProgressReporter): ()
 	progress.finish()
 end
 
-local function buildBundle(ctx: Context, progress: ProgressReporter)
-	progress.report("creating bundle linking file")
-	do
-		local s = ""
-		s ..= "--!strict\n"
-		s ..= "local util = {}\n"
-
-		for _, package in ctx.packages do
-			s ..= `local pkg_{package.config.name} = require("../pkg/{package.config.name}")\n`
-
-			if package.config.types ~= nil then
-				for _, type in package.config.types do
-					s ..= `export type {type} = pkg_{package.config.name}.{type}\n`
-				end
-			end
-
-			s ..= `util.{package.config.bundle} = pkg_{package.config.name}\n`
-		end
-
-		s ..= "return util\n"
-
-		fs.writeFile(`{ctx.outWorkDir}/util.entry.luau`, s)
-	end
-
-	progress.report("creating bundle")
-	spawnCommand(
-		progress,
-		`darklua process -c {ctx.darkluaConfig.bundle} {ctx.outWorkDir}/util.entry.luau {ctx.outWorkDir}/util.bundle.luau`
-	)
-
-	progress.report("finalizing bundle")
-	do
-		local contents = fs.readFile(`{ctx.outWorkDir}/util.bundle.luau`)
-		fs.writeFile(`{ctx.outDir}/util.luau`, "--!strict\n" .. contents)
-	end
-
-	progress.finish()
-end
-
 local function createProgressReporter(name: string): ProgressReporter
 	if IS_CI then
 		return {
@@ -457,9 +406,6 @@ local function build(rootDir: string): ()
 
 	local rbxmProgress = createProgressReporter("rbxm")
 	buildRbxms(ctx, rbxmProgress)
-
-	local bundleProgress = createProgressReporter("bundle")
-	buildBundle(ctx, bundleProgress)
 
 	stdio.write("\n")
 

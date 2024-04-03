@@ -3,4 +3,3 @@ description = "Result<T, E> type in Luau"
 version = "1.0.0"
 
 types = ["Result<T, E>"]
-bundle = "Result"
