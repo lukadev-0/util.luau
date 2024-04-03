@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - "*@*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ok-nick/setup-aftman@v0.4.2
+      - run: lune run build
+      - run: lune run test
+      - run: selene .
+      - run: stylua --check .
+      - run: echo $GITHUB_REF | awk -F "[/@]" '{ printf "PACKAGE_NAME=%s",$3 }' >> "$GITHUB_ENV"
+      - uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          artifacts: ${{ format('build/util.rbxm,build/rbxm/{}.rbxm', env.PACKAGE_NAME) }}
