@@ -1,4 +1,4 @@
-name: CI
+name: Release
 
 on:
   push:
@@ -9,6 +9,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: ok-nick/setup-aftman@v0.4.2
@@ -20,4 +22,4 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           draft: true
-          artifacts: ${{ format('build/util.rbxm,build/rbxm/{}.rbxm', env.PACKAGE_NAME) }}
+          artifacts: ${{ format('build/util.rbxm,build/rbxm/{0}.rbxm', env.PACKAGE_NAME) }}
