@@ -24,18 +24,9 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 result = "lukadev-0/result@{{ data.result }}"
 ```
-
-```lua [Bundle]
-local util = require(...)
-local foo = util.Result.Ok(5)
-```
-
-:::
 
 ## Immutability
 

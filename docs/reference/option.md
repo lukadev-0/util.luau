@@ -23,18 +23,9 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 option = "lukadev-0/option@{{ data.option }}"
 ```
-
-```lua [Bundle]
-local util = require(...)
-local foo = util.Option.Some(5)
-```
-
-:::
 
 ## Immutability
 

@@ -22,18 +22,9 @@ This can make spawning threads significantly faster than using `task.spawn`.
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 threadpool = "lukadev-0/threadpool@{{ data.threadpool }}"
 ```
-
-```lua [Bundle]
-local util = require(...)
-util.threadpool.spawn(...)
-```
-
-:::
 
 ## Functions
 

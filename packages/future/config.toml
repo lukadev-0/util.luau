@@ -3,5 +3,4 @@ description = "Future<T> type in Luau"
 version = "1.0.0"
 
 types = ["Future<T>"]
-bundle = "Future"
 dependencies = ["option", "threadpool", "env"]

@@ -22,18 +22,9 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 future = "lukadev-0/future@{{ data.future }}"
 ```
-
-```lua [Bundle]
-local util = require(...)
-local fut = util.Future.spawn(...)
-```
-
-:::
 
 ## Typechecking
 

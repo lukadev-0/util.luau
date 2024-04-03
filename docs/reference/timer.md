@@ -14,18 +14,9 @@ import { data } from "./package-versions.data.ts";
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 timer = "lukadev-0/timer@{{ data.timer }}"
 ```
-
-```lua [Bundle]
-local util = require(...)
-util.timer.delay(...)
-```
-
-:::
 
 ## Functions
 

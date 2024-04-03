@@ -18,18 +18,9 @@ See [supported runtimes](/docs/supported-runtimes) for more information.
 
 Learn more about [installation](/docs/getting-started#installation).
 
-::: code-group
-
 ```toml-vue [Wally]
 env = "lukadev-0/env@{{ data.env }}"
 ```
-
-```lua [Bundle]
-local env = require(...)
-local runtime = env.runtime
-```
-
-:::
 
 ## Types
 

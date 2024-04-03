@@ -26,13 +26,6 @@ after running `wally install`.
 If you're using the fork of Wally for Lune, you can use
 [lune-wally-package-types](https://github.com/VirtualButFake/lune-wally-package-types).
 
-### Using the bundle
-
-util.luau provides a single script that contains all the utilities. You can
-download the bundle from the
-[releases](https://github.com/lukadev-0/util.luau/releases) under the filename
-`bundle.luau`.
-
 ### Roblox Models
 
 You can also install `util.luau` through `.rbxm` files, which are available in
