@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ok-nick/setup-aftman@v0.4.2
+      - run: lune run build
+      - run: lune run test
+      - run: selene .
+      - run: stylua --check .

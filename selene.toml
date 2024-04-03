@@ -1,4 +1,5 @@
 std = "luau+roblox"
+exclude = ["build/*"]
 
 [config]
 global_usage = { ignore_pattern = "UTIL_TARGET" }
