@@ -372,6 +372,7 @@ local function createProgressReporter(name: string): ProgressReporter
 				stdio.write(stdio.style("dim"))
 				stdio.write(message)
 				stdio.write("\x1B[0K")
+				stdio.write("\x1B[?25h")
 				stdio.write("\n")
 			end,
 		}
@@ -379,7 +380,9 @@ local function createProgressReporter(name: string): ProgressReporter
 end
 
 local function build(rootDir: string): ()
-	stdio.write("\x1B[?25l")
+	if not IS_CI then
+		stdio.write("\x1B[?25l")
+	end
 
 	local ctx = createBuild(rootDir)
 
