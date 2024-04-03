@@ -9,8 +9,8 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ok-nick/setup-aftman@v0.4.2
-      - run: aftman install --no-trust-check
       - run: lune run build
       - run: lune run test
       - run: selene .
