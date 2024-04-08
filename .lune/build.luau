@@ -10,6 +10,17 @@ local IS_CI = process.env.CI == "true"
 
 local WALLY_SCOPE = "lukadev-0"
 
+local function pesdeify(str)
+	return str:gsub("-", "_")
+end
+
+local packageMetadata = {
+	license = "MIT",
+	authors = { "LukaDev <luka@lukadev.me> (https://lukadev.me/)" },
+	realm = "shared",
+	repository = "https://github.com/lukadev-0/util.luau",
+}
+
 type Context = {
 	rootDir: string,
 	pkgDir: string,
@@ -252,9 +263,9 @@ local function buildPackage(ctx: Context, progress: ProgressReporter, package: P
 				name = `{WALLY_SCOPE}/{package.config.name}`,
 				version = package.config.version,
 				description = package.config.description,
-				license = "MIT",
-				authors = { "LukaDev" },
-				realm = "shared",
+				license = packageMetadata.license,
+				authors = packageMetadata.authors,
+				realm = packageMetadata.realm,
 				registry = "https://github.com/UpliftGames/wally-index",
 			},
 			dependencies = {},
@@ -273,6 +284,54 @@ local function buildPackage(ctx: Context, progress: ProgressReporter, package: P
 		end
 
 		fs.writeFile(`{outDir}/wally.toml`, serde.encode("toml", wallyToml, true))
+	end
+
+	progress.report("creating pesde.yaml")
+	do
+		local pesdeYaml = {
+			name = pesdeify(`{WALLY_SCOPE}/{package.config.name}`),
+			version = package.config.version,
+			description = package.config.description,
+			license = packageMetadata.license,
+			authors = packageMetadata.authors,
+			realm = packageMetadata.realm,
+			repository = packageMetadata.repository,
+			indices = {
+				default = "https://github.com/daimond113/pesde-index",
+			},
+			exports = {
+				lib = "./init.luau",
+			},
+			dependencies = {},
+		}
+
+		if package.config.dependencies then
+			for _, dependencyName in package.config.dependencies do
+				local dependency = ctx.packages[dependencyName]
+				if dependency == nil then
+					progress.fail(`dependency {dependencyName} not found`)
+					process.exit(1)
+				end
+
+				pesdeYaml.dependencies[dependencyName] = {
+					name = pesdeify(`{WALLY_SCOPE}/{dependencyName}`),
+					version = dependency.config.version,
+				}
+			end
+		end
+
+		fs.writeFile(`{outDir}/pesde.yaml`, serde.encode("yaml", pesdeYaml, true))
+	end
+
+	progress.report("creating README.md")
+	do
+		local s = ""
+		s ..= `# {package.config.name}\n\n`
+		s ..= `{package.config.description}\n\n`
+		s ..= `Learn more in the [documentation](https://lukadev-0.github.io/util.luau/reference/{package.config.name}).\n`
+		s ..= `This package is part of [util.luau](https://lukadev-0.github.io/util.luau).\n`
+
+		fs.writeFile(`{outDir}/README.md`, s)
 	end
 
 	progress.report("copying LICENSE")
