@@ -24,9 +24,18 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-```toml-vue [Wally]
+::: code-group
+
+```toml-vue [wally]
+[dependencies]
 result = "lukadev-0/result@{{ data.result }}"
 ```
+
+```sh-vue [pesde]
+pesde add lukadev_0/result@{{ data.result }}
+```
+
+:::
 
 ## Immutability
 

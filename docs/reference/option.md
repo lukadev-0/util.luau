@@ -23,9 +23,18 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-```toml-vue [Wally]
+::: code-group
+
+```toml-vue [wally]
+[dependencies]
 option = "lukadev-0/option@{{ data.option }}"
 ```
+
+```sh-vue [pesde]
+pesde add lukadev_0/option@{{ data.option }}
+```
+
+:::
 
 ## Immutability
 

@@ -26,6 +26,12 @@ after running `wally install`.
 If you're using the fork of Wally for Lune, you can use
 [lune-wally-package-types](https://github.com/VirtualButFake/lune-wally-package-types).
 
+### With pesde
+
+You can also install util.luau with [pesde](https://pesde.daimond113.com),
+unlike Wally, pesde supports types automatically, so you don't need to use any
+additional tools.
+
 ### Roblox Models
 
 You can also install `util.luau` through `.rbxm` files, which are available in

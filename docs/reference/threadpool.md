@@ -22,9 +22,18 @@ This can make spawning threads significantly faster than using `task.spawn`.
 
 Learn more about [installation](/docs/getting-started#installation).
 
-```toml-vue [Wally]
+::: code-group
+
+```toml-vue [wally]
+[dependencies]
 threadpool = "lukadev-0/threadpool@{{ data.threadpool }}"
 ```
+
+```sh-vue [pesde]
+pesde add lukadev_0/threadpool@{{ data.threadpool }}
+```
+
+:::
 
 ## Functions
 

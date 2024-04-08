@@ -18,9 +18,18 @@ See [supported runtimes](/docs/supported-runtimes) for more information.
 
 Learn more about [installation](/docs/getting-started#installation).
 
-```toml-vue [Wally]
+::: code-group
+
+```toml-vue [wally]
+[dependencies]
 std = "lukadev-0/std@{{ data.std }}"
 ```
+
+```sh-vue [pesde]
+pesde add lukadev_0/std@{{ data.std }}
+```
+
+:::
 
 ## Libraries
 

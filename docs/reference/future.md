@@ -22,9 +22,18 @@ This utility is inspired by the
 
 Learn more about [installation](/docs/getting-started#installation).
 
-```toml-vue [Wally]
+::: code-group
+
+```toml-vue [wally]
+[dependencies]
 future = "lukadev-0/future@{{ data.future }}"
 ```
+
+```sh-vue [pesde]
+pesde add lukadev_0/future@{{ data.future }}
+```
+
+:::
 
 ## Static Functions
 
