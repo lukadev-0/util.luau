@@ -93,8 +93,8 @@ You may also alias the standard libraries to a shorter name if you prefer.
 local task = std.task
 ```
 
-However, do not alias functions directly, as this will break the runtime
-setting functionality if the runtime is set after your module code is ran.
+However, do not alias functions directly, as this will break the runtime setting
+functionality if the runtime is set after your module code is ran.
 
 ```lua
 -- do not do this
