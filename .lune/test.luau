@@ -109,6 +109,137 @@ local function createTestLib(blocks: { TestBlock })
 		return true
 	end
 
+	local randomTuple = require("./test-lib/randomTuple")
+	local possibleTypes = { "number", "string", "boolean" }
+	local alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	local function createRandomTuple(types: { string }): { any }
+		local t: { any } = {}
+		for i, type in types do
+			if type == "number" then
+				t[i] = math.random(0, 999)
+			elseif type == "string" then
+				local s = ""
+				for _ = 1, math.random(5, 10) do
+					local randomChar = math.random(#alphabet)
+					s ..= alphabet:sub(randomChar, randomChar)
+				end
+				t[i] = s
+			elseif type == "boolean" then
+				t[i] = math.random() > 0.5
+			else
+				error(`Unknown type: {type}`, 2)
+			end
+		end
+		return t
+	end
+
+	local function createAssertEqTuple(name: string, tuple: { any }): (...any) -> ()
+		local s = ""
+
+		s ..= "local "
+		for i = 1, #tuple do
+			s ..= `v{i}`
+			if i < #tuple then
+				s ..= ", "
+			end
+		end
+		s ..= " = ...\n"
+
+		s ..= "if\n"
+		s ..= `  select("#", ...) ~= {#tuple} or\n`
+
+		local tupleStr = ""
+		for i, v in tuple do
+			local valueStr = if typeof(v) == "string" then `"{v}"` else `{v}`
+			s ..= `  v{i} ~= {valueStr}`
+			tupleStr ..= valueStr
+
+			if i < #tuple then
+				s ..= " or\n"
+				tupleStr ..= "\t"
+			end
+		end
+		s ..= "\nthen\n"
+		s ..= '  local s = ""\n'
+		s ..= '  for i = 1, select("#", ...) do'
+		s ..= "    local v = select(i, ...)\n"
+		s ..= '    s ..= if typeof(v) == "string" then `"{v}"` else `{v}`\n'
+		s ..= '    if i < select("#", ...) then\n'
+		s ..= '      s ..= "\\t"\n'
+		s ..= "    end\n"
+		s ..= "  end\n"
+		s ..= `  error(\`Equality Failed\\n  Expected: \\t{tupleStr}\\n  Received: \\t\{s}\`, 2)\n`
+		s ..= "end"
+
+		return luau.load(s, { debugName = name })
+	end
+
+	local function createMapTuple(name: string, types: { string }): (...any) -> ...any
+		local s = ""
+
+		s ..= "local "
+		for i = 1, #types do
+			s ..= `v{i}`
+			if i < #types then
+				s ..= ", "
+			end
+		end
+		s ..= " = ...\n"
+
+		s ..= "return "
+		for i, type in types do
+			if type == "string" then
+				if math.random() > 0.5 then
+					s ..= `v{i}:upper()`
+				else
+					s ..= `v{i}:reverse()`
+				end
+			elseif type == "number" then
+				if math.random() > 0.5 then
+					s ..= `v{i} + {math.random(5)}`
+				else
+					s ..= `v{i} - {math.random(5)}`
+				end
+			elseif type == "boolean" then
+				s ..= `not v{i}`
+			else
+				error(`Unknown type: {type}`, 2)
+			end
+
+			if i < #types then
+				s ..= ", "
+			end
+		end
+
+		return luau.load(s, { debugName = name })
+	end
+
+	function testLib.randomTuple(f: (randomTuple.TupleFunctions, ...any) -> ())
+		local types = {}
+		for i = 1, math.random(10) do
+			types[i] = possibleTypes[math.random(#possibleTypes)]
+		end
+
+		local originalTuple = createRandomTuple(types)
+		local otherTuple = createRandomTuple(types)
+
+		local map = createMapTuple("map", types)
+
+		local tupleFunctions = {
+			map = map,
+			other = function()
+				return unpack(otherTuple)
+			end,
+			assertEq = createAssertEqTuple("assertEq", originalTuple),
+			assertEqMapped = createAssertEqTuple("assertEqMapped", { map(unpack(originalTuple)) }),
+			assertEqOther = createAssertEqTuple("assertEqOther", otherTuple),
+			assertEqOtherMapped = createAssertEqTuple("assertEqOtherMapped", { map(unpack(otherTuple)) }),
+		}
+
+		f(tupleFunctions, unpack(originalTuple))
+	end
+
 	return testLib
 end
 

@@ -299,7 +299,21 @@ end
 ]=]
 function Option.__tostring(self)
 	if self._n ~= 0 then
-		return `Option::Some({table.concat(self :: any, ", ")})`
+		local s = ""
+		for i = 1, self._n do
+			if i > 1 then
+				s ..= ", "
+			end
+
+			local v = self[i]
+			if typeof(v) == "string" then
+				s ..= string.format("%q", v)
+			else
+				s ..= tostring(v)
+			end
+		end
+
+		return `Option::Some({s})`
 	else
 		return "Option::None"
 	end
