@@ -1,38 +1,62 @@
-export type Option<T> = typeof(setmetatable(
+--# selene: allow(mixed_table)
+
+export type Option<T...> = typeof(setmetatable(
 	{} :: {
-		_s: boolean,
-		_v: T,
+		-- value to "store" T...
+		-- this value doesn't exist at runtime, and is only used for typechecking
+		_T: (T...) -> (),
+
+		_n: number,
 	},
 	{} :: OptionImpl
 ))
 
 export type OptionImpl = {
 	__index: OptionImpl,
-	__tostring: <T>(self: Option<T>) -> string,
-	__eq: <T>(self: Option<T>, other: Option<T>) -> boolean,
+	__tostring: <T0...>(self: Option<T0...>) -> string,
+	__eq: <T1...>(self: Option<T1...>, other: Option<T1...>) -> boolean,
 
-	None: Option<any>,
-	Some: <T>(value: T) -> Option<T>,
-	from: <T>(value: T | nil) -> Option<T>,
-	is: (value: any) -> boolean,
-	isSome: <T>(self: Option<T>) -> boolean,
-	isSomeAnd: <T>(self: Option<T>, f: (T) -> boolean) -> boolean,
-	isNone: <T>(self: Option<T>) -> boolean,
-	expect: <T>(self: Option<T>, message: string) -> T,
-	unwrap: <T>(self: Option<T>) -> T,
-	unwrapOr: <T>(self: Option<T>, default: T) -> T,
-	unwrapOrElse: <T>(self: Option<T>, f: () -> T) -> T,
-	map: <T, U>(self: Option<T>, f: (T) -> U) -> Option<U>,
-	mapOr: <T, U>(self: Option<T>, default: U, f: (T) -> U) -> U,
-	mapOrElse: <T, U>(self: Option<T>, default: () -> U, f: (T) -> U) -> U,
-	andOpt: <T, U>(self: Option<T>, other: Option<U>) -> Option<U>,
-	andThen: <T, U>(self: Option<T>, f: (T) -> Option<U>) -> Option<U>,
-	filter: <T>(self: Option<T>, f: (T) -> boolean) -> Option<T>,
-	orOpt: <T>(self: Option<T>, other: Option<T>) -> Option<T>,
-	orElse: <T>(self: Option<T>, f: () -> Option<T>) -> Option<T>,
-	xor: <T>(self: Option<T>, other: Option<T>) -> Option<T>,
-	match: <T, U>(self: Option<T>, f: { Some: (T) -> U, None: () -> U }) -> U,
+	None: Option<...any>,
+	Some: <T3...>(T3...) -> Option<T3...>,
+	from: <T4>(value: T4?) -> Option<T4>,
+	is: (value: unknown) -> boolean,
+	isSome: <T5...>(self: Option<T5...>) -> boolean,
+	isSomeAnd: <T6...>(self: Option<T6...>, f: (T6...) -> boolean) -> boolean,
+	isNone: <T7...>(self: Option<T7...>) -> boolean,
+	expect: <T8...>(self: Option<T8...>, message: string) -> T8...,
+	unwrap: <T9...>(self: Option<T9...>) -> T9...,
+	unwrapOr: <T10...>(self: Option<T10...>, T10...) -> T10...,
+	unwrapOrElse: <T11...>(self: Option<T11...>, f: () -> T11...) -> T11...,
+	unwrapOrNil: <T>(self: Option<T>) -> T?,
+	map: <T12..., U0...>(self: Option<T12...>, f: (T12...) -> U0...) -> Option<U0...>,
+	mapOr: <U, T13...>(self: Option<T13...>, default: U, f: (T13...) -> U) -> U,
+	mapOrRest: <T14..., U1...>(self: Option<T14...>, f: (T14...) -> U1..., U1...) -> U1...,
+	mapOrElse: <T15..., U2...>(self: Option<T15...>, default: () -> U2..., f: (T15...) -> U2...) -> U2...,
+	andOpt: <T16..., U3...>(self: Option<T16...>, other: Option<U3...>) -> Option<U3...>,
+	andThen: <T17..., U4...>(self: Option<T17...>, f: (T17...) -> Option<U4...>) -> Option<U4...>,
+	filter: <T18...>(self: Option<T18...>, f: (T18...) -> boolean) -> Option<T18...>,
+	orOpt: <T19...>(self: Option<T19...>, other: Option<T19...>) -> Option<T19...>,
+	orElse: <T20...>(self: Option<T20...>, f: () -> Option<T20...>) -> Option<T20...>,
+	xor: <T21...>(self: Option<T21...>, other: Option<T21...>) -> Option<T21...>,
+	match: <T22..., U5...>(self: Option<T22...>, f: { Some: (T22...) -> U5..., None: () -> U5... }) -> U5...,
+	join: OptionJoin,
 }
+
+-- can't join two type packs
+-- stylua: ignore
+type OptionJoin = 
+			(<T1, U1...>(self: Option<T1>, other: Option<U1...>) -> Option<(T1, U1...)>)
+		& (<T1, T2, U2...>(self: Option<T1, T2>, other: Option<U2...>) -> Option<(T1, T2, U2...)>)
+		& (<T1, T2, T3, U3...>(self: Option<T1, T2, T3>, other: Option<U3...>) -> Option<(T1, T2, T3, U3...)>)
+		& (<T1, T2, T3, T4, U4...>(self: Option<T1, T2, T3, T4>, other: Option<U4...>) -> Option<(T1, T2, T3, T4, U4...)>)
+		& (<T1, T2, T3, T4, T5, U5...>(self: Option<T1, T2, T3, T4, T5>, other: Option<U5...>) -> Option<(T1, T2, T3, T4, T5, U5...)>)
+		& (<T1, T2, T3, T4, T5, T6, U6...>(self: Option<T1, T2, T3, T4, T5, T6>, other: Option<U6...>) -> Option<(T1, T2, T3, T4, T5, T6, U6...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, U7...>(self: Option<T1, T2, T3, T4, T5, T6, T7>, other: Option<U7...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, U7...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, U8...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8>, other: Option<U8...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, U8...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, U9...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9>, other: Option<U9...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, U9...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, U10...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, other: Option<U10...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, U10...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, U11...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, other: Option<U11...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, U11...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, U12...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, other: Option<U12...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, U12...)>)
 
 --[=[
   @class Option
@@ -50,14 +74,17 @@ Option.__index = Option
 --[=[
   The `Option` that does not contain a value.
 ]=]
-Option.None = table.freeze(setmetatable({ _s = false :: false, _v = nil }, Option) :: any)
+Option.None = table.freeze(setmetatable({ _n = 0 }, Option) :: any)
 
 --[=[
-  Creates a new `Some` with the given value. A `Some` may contain
-	a `nil` value.
+  Creates a new `Some` with the given value.
 ]=]
-function Option.Some(value)
-	local self = setmetatable({ _s = true :: true, _v = value }, Option)
+function Option.Some(...)
+	local n = select("#", ...)
+	if n == 0 then
+		error("Option.Some() called with no arguments", 2)
+	end
+	local self = setmetatable({ _n = n, ... }, Option)
 	return table.freeze(self) :: any
 end
 
@@ -69,7 +96,7 @@ function Option.from(value)
 	if value == nil then
 		return Option.None
 	else
-		return Option.Some(value :: any)
+		return Option.Some(value)
 	end
 end
 
@@ -77,14 +104,14 @@ end
 	Returns `true` if the given value is an `Option`.
 ]=]
 function Option.is(value)
-	return typeof(value) == "table" and getmetatable(value) == Option
+	return typeof(value) == "table" and getmetatable(value :: any) == Option
 end
 
 --[=[
   Returns `true` if the option is a `Some` value.
 ]=]
 function Option.isSome(self)
-	return self._s
+	return self._n ~= 0
 end
 
 --[=[
@@ -92,14 +119,14 @@ end
 	satisfies the given predicate.
 ]=]
 function Option.isSomeAnd(self, f)
-	return self._s and f(self._v)
+	return self._n ~= 0 and f(unpack(self :: any))
 end
 
 --[=[
   Returns `true` if the option is a `None` value.
 ]=]
 function Option.isNone(self): boolean
-	return not self._s
+	return self._n == 0
 end
 
 --[=[
@@ -107,10 +134,10 @@ end
   an error with the given message.
 ]=]
 function Option.expect(self, message)
-	if not self._s then
+	if self._n == 0 then
 		error(message, 2)
 	end
-	return self._v
+	return unpack(self :: any)
 end
 
 --[=[
@@ -118,21 +145,21 @@ end
   an error.
 ]=]
 function Option.unwrap(self)
-	if not self._s then
+	if self._n == 0 then
 		error("called `Option.unwrap()` on a `None` value", 2)
 	end
-	return self._v
+	return unpack(self :: any)
 end
 
 --[=[
   Returns the value of the option if it is `Some`, otherwise returns
   the given default value.
 ]=]
-function Option.unwrapOr(self, default)
-	if not self._s then
-		return default
+function Option.unwrapOr(self, ...)
+	if self._n == 0 then
+		return ...
 	end
-	return self._v
+	return unpack(self :: any)
 end
 
 --[=[
@@ -140,10 +167,18 @@ end
   the result of calling the given function.
 ]=]
 function Option.unwrapOrElse(self, f)
-	if not self._s then
+	if self._n == 0 then
 		return f()
 	end
-	return self._v
+	return unpack(self :: any)
+end
+
+--[=[
+	Returns the value of the option if it is `Some`, otherwise returns
+	`nil`. Only works with `Option`s that contain a single value.
+]=]
+function Option.unwrapOrNil(self)
+	return self[1]
 end
 
 --[=[
@@ -151,10 +186,10 @@ end
   the option is `Some`, otherwise returns `None`.
 ]=]
 function Option.map(self, f)
-	if not self._s then
+	if self._n == 0 then
 		return Option.None
 	end
-	return Option.Some(f(self._v) :: any)
+	return Option.Some(f(unpack(self :: any)))
 end
 
 --[=[
@@ -162,10 +197,21 @@ end
   otherwise returns the given default value.
 ]=]
 function Option.mapOr(self, default, f)
-	if not self._s then
+	if self._n == 0 then
 		return default
 	end
-	return f(self._v)
+	return f(unpack(self :: any))
+end
+
+--[=[
+	Returns the result of the given function if the option is `Some`,
+	otherwise returns the rest of the arguments.
+]=]
+function Option.mapOrRest(self, f, ...)
+	if self._n == 0 then
+		return ...
+	end
+	return f(unpack(self :: any))
 end
 
 --[=[
@@ -173,17 +219,17 @@ end
   otherwise returns the result of calling the default function.
 ]=]
 function Option.mapOrElse(self, default, f)
-	if not self._s then
+	if self._n == 0 then
 		return default()
 	end
-	return f(self._v)
+	return f(unpack(self :: any))
 end
 
 --[=[
   Returns `None` if the option is `None`, otherwise returns the other option.
 ]=]
 function Option.andOpt(self, other)
-	if (self :: Option<any>):isNone() then
+	if self._n == 0 then
 		return Option.None
 	end
 	return other
@@ -194,10 +240,10 @@ end
   function with the value of the option and returns the result.
 ]=]
 function Option.andThen(self, f)
-	if not self._s then
+	if self._n == 0 then
 		return Option.None
 	end
-	return f(self._v)
+	return f(unpack(self :: any))
 end
 
 --[=[
@@ -207,10 +253,10 @@ end
    - if the function returns `false`, returns `None`
 ]=]
 function Option.filter(self, f)
-	if not self._s then
+	if self._n == 0 then
 		return Option.None
 	end
-	if f(self._v) then
+	if f(unpack(self :: any)) then
 		return self
 	end
 	return Option.None
@@ -221,7 +267,7 @@ end
   the other option.
 ]=]
 function Option.orOpt(self, other)
-	if self._s then
+	if self._n ~= 0 then
 		return self
 	end
 	return other
@@ -232,7 +278,7 @@ end
   the result of calling the given function.
 ]=]
 function Option.orElse(self, f)
-	if self._s then
+	if self._n ~= 0 then
 		return self
 	end
 	return f()
@@ -243,10 +289,10 @@ end
   returns `None`.
 ]=]
 function Option.xor(self, other)
-	if not self._s then
+	if self._n == 0 then
 		return other
 	end
-	if not other._s then
+	if other._n == 0 then
 		return self
 	end
 	return Option.None
@@ -259,18 +305,39 @@ end
 	is returned.
 ]=]
 function Option.match(self, f)
-	if self._s then
-		return f.Some(self._v)
+	if self._n ~= 0 then
+		return f.Some(unpack(self :: any))
 	end
 	return f.None()
 end
+
+Option.join = function(self, other)
+	if self._n == 0 or other._n == 0 then
+		return Option.None
+	end
+	return Option.Some(unpack(self), unpack(other))
+end :: any
 
 --[=[
 	Converts the given option to a string.
 ]=]
 function Option.__tostring(self)
-	if self._s then
-		return `Option::Some({self._v})`
+	if self._n ~= 0 then
+		local s = ""
+		for i = 1, self._n do
+			if i > 1 then
+				s ..= ", "
+			end
+
+			local v = self[i]
+			if typeof(v) == "string" then
+				s ..= string.format("%q", v)
+			else
+				s ..= tostring(v)
+			end
+		end
+
+		return `Option::Some({s})`
 	else
 		return "Option::None"
 	end
@@ -282,10 +349,18 @@ end
 ]=]
 function Option.__eq(self, other)
 	if Option.is(other) then
-		if self._s and other._s then
-			return self._v == other._v
+		if self._n == 0 and other._n == 0 then
+			return true
+		elseif self._n == 1 and other._n == 1 then
+			return self[1] == other[1]
+		elseif self._n == other._n then
+			for i = 1, self._n do
+				if self[i] ~= other[i] then
+					return false
+				end
+			end
+			return true
 		end
-		return self._s == other._s
 	end
 	return false
 end
