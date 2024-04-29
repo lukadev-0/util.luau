@@ -167,6 +167,43 @@ calling them using `:` syntax. [Learn more](/reference/option#typechecking).
 
 :::
 
+## Joining options
+
+Sometimes you have multiple options and you want to combine them into a single
+option.
+
+For example, lets say you had two options, and you wanted to get the sum of
+their values. You may achieve this using the `andThen` and `map` methods:
+
+```lua
+local optA = Option.Some(5)
+local optB = Option.Some(10)
+
+local sum = optA:andThen(function(a)
+  return optB:map(function(b)
+    return a + b
+  end)
+end)
+
+print(sum) -- Option::Some(15)
+```
+
+However, this introduces multiple levels of nesting, which may be undesirable.
+
+Instead, we can use the `join` method to turn both options into a single option,
+which we can map over:
+
+```lua
+local optA = Option.Some(5)
+local optB = Option.Some(10)
+
+local sum = optA:join(optB):map(function(a, b)
+  return a + b
+end)
+```
+
+If either option is `None`, the result will be `None`.
+
 ## Learn more
 
 There are more methods available on the `Option` type, this was just a small
