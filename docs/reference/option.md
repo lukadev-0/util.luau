@@ -464,7 +464,7 @@ local other = Option.Some(10)
 assert(some:xor(other) == Option.None)
 ```
 
-### Options:match
+### Option:match
 
 ```lua
 function Option:match<U...>(f: {
@@ -492,6 +492,25 @@ local result = some:match({
 })
 
 assert(result == 10)
+```
+
+### Option:join
+
+```lua
+function Option:join<U...>(other: Option<U...>): Option<(T..., U...)>
+```
+
+Joins the values of two options into a single option. If both options are
+`Some`, the values are joined into a single `Some`, otherwise `None` is
+returned.
+
+#### Example
+
+```lua
+local some = Option.Some(1, 2)
+local other = Option.Some(3, 4)
+
+assert(some:join(other) == Option.Some(1, 2, 3, 4))
 ```
 
 ## Metamethods
