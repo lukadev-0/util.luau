@@ -31,15 +31,32 @@ export type OptionImpl = {
 	map: <T12..., U0...>(self: Option<T12...>, f: (T12...) -> U0...) -> Option<U0...>,
 	mapOr: <U, T13...>(self: Option<T13...>, default: U, f: (T13...) -> U) -> U,
 	mapOrRest: <T14..., U1...>(self: Option<T14...>, f: (T14...) -> U1..., U1...) -> U1...,
-	mapOrElse: <S15..., U2...>(self: Option<S15...>, default: () -> U2..., f: (S15...) -> U2...) -> U2...,
-	andOpt: <S16..., U3...>(self: Option<S16...>, other: Option<U3...>) -> Option<U3...>,
-	andThen: <S17..., U4...>(self: Option<S17...>, f: (S17...) -> Option<U4...>) -> Option<U4...>,
-	filter: <S18...>(self: Option<S18...>, f: (S18...) -> boolean) -> Option<S18...>,
-	orOpt: <S19...>(self: Option<S19...>, other: Option<S19...>) -> Option<S19...>,
-	orElse: <S20...>(self: Option<S20...>, f: () -> Option<S20...>) -> Option<S20...>,
-	xor: <S21...>(self: Option<S21...>, other: Option<S21...>) -> Option<S21...>,
-	match: <S22..., U5...>(self: Option<S22...>, f: { Some: (S22...) -> U5..., None: () -> U5... }) -> U5...,
+	mapOrElse: <T15..., U2...>(self: Option<T15...>, default: () -> U2..., f: (T15...) -> U2...) -> U2...,
+	andOpt: <T16..., U3...>(self: Option<T16...>, other: Option<U3...>) -> Option<U3...>,
+	andThen: <T17..., U4...>(self: Option<T17...>, f: (T17...) -> Option<U4...>) -> Option<U4...>,
+	filter: <T18...>(self: Option<T18...>, f: (T18...) -> boolean) -> Option<T18...>,
+	orOpt: <T19...>(self: Option<T19...>, other: Option<T19...>) -> Option<T19...>,
+	orElse: <T20...>(self: Option<T20...>, f: () -> Option<T20...>) -> Option<T20...>,
+	xor: <T21...>(self: Option<T21...>, other: Option<T21...>) -> Option<T21...>,
+	match: <T22..., U5...>(self: Option<T22...>, f: { Some: (T22...) -> U5..., None: () -> U5... }) -> U5...,
+	join: OptionJoin,
 }
+
+-- can't join two type packs
+-- stylua: ignore
+type OptionJoin = 
+			(<T1, U1...>(self: Option<T1>, other: Option<U1...>) -> Option<(T1, U1...)>)
+		& (<T1, T2, U2...>(self: Option<T1, T2>, other: Option<U2...>) -> Option<(T1, T2, U2...)>)
+		& (<T1, T2, T3, U3...>(self: Option<T1, T2, T3>, other: Option<U3...>) -> Option<(T1, T2, T3, U3...)>)
+		& (<T1, T2, T3, T4, U4...>(self: Option<T1, T2, T3, T4>, other: Option<U4...>) -> Option<(T1, T2, T3, T4, U4...)>)
+		& (<T1, T2, T3, T4, T5, U5...>(self: Option<T1, T2, T3, T4, T5>, other: Option<U5...>) -> Option<(T1, T2, T3, T4, T5, U5...)>)
+		& (<T1, T2, T3, T4, T5, T6, U6...>(self: Option<T1, T2, T3, T4, T5, T6>, other: Option<U6...>) -> Option<(T1, T2, T3, T4, T5, T6, U6...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, U7...>(self: Option<T1, T2, T3, T4, T5, T6, T7>, other: Option<U7...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, U7...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, U8...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8>, other: Option<U8...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, U8...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, U9...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9>, other: Option<U9...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, U9...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, U10...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>, other: Option<U10...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, U10...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, U11...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>, other: Option<U11...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, U11...)>)
+		& (<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, U12...>(self: Option<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>, other: Option<U12...>) -> Option<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, U12...)>)
 
 --[=[
   @class Option
@@ -293,6 +310,13 @@ function Option.match(self, f)
 	end
 	return f.None()
 end
+
+Option.join = function(self, other)
+	if self._n == 0 or other._n == 0 then
+		return Option.None
+	end
+	return Option.Some(unpack(self), unpack(other))
+end :: any
 
 --[=[
 	Converts the given option to a string.
