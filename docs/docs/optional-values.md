@@ -18,18 +18,24 @@ To create a `Some` option, we can use `Option.Some`:
 local opt = Option.Some(5)
 ```
 
+An option can contain multiple values:
+
+```lua
+local opt = Option.Some(5, "hello", true)
+```
+
 To create a `None` option, we can use `Option.None`:
 
 ```lua
 local opt = Option.None
 ```
 
-## Accessing the inner value
+## Accessing the inner values
 
-There are multiple ways to access the inner value of an option.
+There are multiple ways to access the inner values of an option.
 
-The easiest way is to use the `unwrap` method, which will return the inner value
-if it exist, or throw an error if it does not:
+The easiest way is to use the `unwrap` method, which will return the inner
+values if it exist, or throw an error if it does not:
 
 ```lua
 local some = Option.Some(5)

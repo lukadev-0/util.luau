@@ -10,7 +10,7 @@ import { data } from "./package-versions.data.ts";
 
 [View Source](https://github.com/lukadev-0/util.luau/blob/main/packages/option/init.luau)
 
-The `option` package provides the `Option<T>` type, which is a type that
+The `option` package provides the `Option<T...>` type, which is a type that
 represents a value that may or may not exist, akin to `T | nil`.
 
 This is useful to avoid `nil`-related bugs, which can cause bugs that are hard
@@ -49,7 +49,7 @@ aware of this when working with `Option` values.
 ### Option.None
 
 ```lua
-Option.None: Option<any>
+Option.None: Option<...any>
 ```
 
 The option that does not contain a value.
@@ -66,23 +66,23 @@ assert(none:isNone())
 ### Option.Some
 
 ```lua
-function Option.Some<T>(value: T): Option<T>
+function Option.Some<T...>(T...): Option<T...>
 ```
 
-Creates a new `Some` with the given value. A `Some` may contain any value,
-including `nil`.
+Creates a new `Some` with the given values. You must provide at least one value,
+otherwise an error will be thrown.
 
 #### Example
 
 ```lua
-local some = Option.Some(5)
+local some = Option.Some(5, "foo", true)
 assert(some:isSome())
 ```
 
 ### Option.from
 
 ```lua
-function Option.from<T>(value: T | nil): Option<T>
+function Option.from<T>(value: T?): Option<T>
 ```
 
 Creates a new `Option` from the given value. If the value is `nil`, it returns
@@ -134,10 +134,10 @@ assert(some:isSome())
 ### Option:isSomeAnd
 
 ```lua
-function Option:isSomeAnd(f: (T) -> boolean): boolean
+function Option:isSomeAnd(f: (T...) -> boolean): boolean
 ```
 
-Returns `true` if the `Option` is a `Some` and the value satisfies the given
+Returns `true` if the `Option` is a `Some` and the values satisfies the given
 predicate, otherwise it returns `false`.
 
 #### Example
@@ -216,11 +216,11 @@ none:unwrap() -- throws "called `Option.unwrap()` on a `None` value"
 ### Option:unwrapOr
 
 ```lua
-function Option:unwrapOr(default: T): T
+function Option:unwrapOr(T...): T...
 ```
 
 Returns the value of the option if it is a `Some`, otherwise it returns the
-given default.
+given default values.
 
 #### Example
 
@@ -235,10 +235,10 @@ assert(none:unwrapOr(10) == 10)
 ### Option:unwrapOrElse
 
 ```lua
-function Option:unwrapOrElse(f: () -> T): T
+function Option:unwrapOrElse(f: () -> T...): T...
 ```
 
-Returns the value of the option if it is a `Some`, otherwise it returns the
+Returns the values of the option if it is a `Some`, otherwise it returns the
 result of the given function.
 
 #### Example
@@ -250,10 +250,29 @@ assert(some:unwrapOrElse(function()
 end) == 5)
 ```
 
+### Option:unwrapOrNil
+
+```lua
+function Option:unwrapOrNil(): T?
+```
+
+Returns the value of the option if it is a `Some`, otherwise it returns `nil`.
+Only works if the option contains a single value, any other values are ignored.
+
+#### Example
+
+```lua
+local some = Option.Some(5)
+assert(some:unwrapOrNil() == 5)
+
+local none = Option.None
+assert(none:unwrapOrNil() == nil)
+```
+
 ### Option:map
 
 ```lua
-function Option:map<U>(f: (T) -> U): Option<U>
+function Option:map<U...>(f: (T...) -> U...): Option<U...>
 ```
 
 Returns the result of the given function wrapped in an `Option` if the option is
@@ -273,11 +292,12 @@ assert(double == Option.Some(10))
 ### Option:mapOr
 
 ```lua
-function Option:mapOr<U>(default: U, f: (T) -> U): U
+function Option:mapOr<U>(default: U, f: (T...) -> U): U
 ```
 
 Returns the result of the given function if the option is `Some`, otherwise
-returns the given default value.
+returns the given default value. The result may only contain one value, if you
+need multiple values, use [`mapOrRest`](#option-maporrest).
 
 #### Example
 
@@ -293,10 +313,22 @@ assert(none:mapOr(15, function(value)
 end) == 15)
 ```
 
+### Option:mapOrRest
+
+```lua
+function Option:mapOrRest<U...>(f: (T...) -> U..., U...): U...
+```
+
+Returns the result of the given function if the option is `Some`, otherwise
+returns the given default values.
+
+This is equivalent to [`mapOr`](#option-mapor) but allows for multiple return
+values. The default values are provided after the function.
+
 ### Option:mapOrElse
 
 ```lua
-function Option:mapOrElse<U>(default: () -> U, f: (T) -> U): U
+function Option:mapOrElse<U...>(default: () -> U..., f: (T...) -> U...): U...
 ```
 
 Returns the result of the given function if the option is `Some`, otherwise
@@ -316,7 +348,7 @@ end) == 10)
 ### Option:andOpt
 
 ```lua
-function Option:andOpt<U>(other: Option<U>): Option<U>
+function Option:andOpt<U...>(other: Option<U...>): Option<U...>
 ```
 
 Returns `None` if the option is `None`, otherwise returns the other option.
@@ -335,7 +367,7 @@ assert(none:andOpt(other) == none)
 ### Option:andThen
 
 ```lua
-function Option:andThen<U>(f: (T) -> Option<U>): Option<U>
+function Option:andThen<U...>(f: (T...) -> Option<U...>): Option<U...>
 ```
 
 Returns `None` if the option is `None`, otherwise returns the result of the
@@ -355,11 +387,11 @@ assert(double == Option.Some(10))
 ### Option:filter
 
 ```lua
-function Option:filter(f: (T) -> boolean): Option<T>
+function Option:filter(f: (T...) -> boolean): Option<T>
 ```
 
 Returns `None` if the option is `None`, otherwise calls the function with the
-value:
+values:
 
 - if the function returns `true`, returns the original option
 - if the function returns `false`, returns `None`
@@ -378,7 +410,7 @@ assert(filtered == some)
 ### Option:orOpt
 
 ```lua
-function Option:orOpt(other: Option<T>): Option<T>
+function Option:orOpt(other: Option<T...>): Option<T...>
 ```
 
 Returns the option if it is `Some`, otherwise returns the other option.
@@ -399,7 +431,7 @@ assert(none:orOpt(Option.None) == none)
 ### Option:orElse
 
 ```lua
-function Option:orElse(f: () -> Option<T>): Option<T>
+function Option:orElse(f: () -> Option<T...>): Option<T...>
 ```
 
 Returns the option if it is `Some`, otherwise returns the result of calling the
@@ -417,7 +449,7 @@ end) == some)
 ### Option:xor
 
 ```lua
-function Option:xor(other: Option<T>): Option<T>
+function Option:xor(other: Option<T...>): Option<T...>
 ```
 
 Returns `None` if both options are `Some` or `None`, otherwise returns the
@@ -435,14 +467,14 @@ assert(some:xor(other) == Option.None)
 ### Options:match
 
 ```lua
-function Option:match<U>(f: {
-  Some: (T) -> U,
-  None: () -> U
-}): U
+function Option:match<U...>(f: {
+  Some: (T...) -> U...,
+  None: () -> U...
+}): U...
 ```
 
 Takes a table containing a `Some` and `None` function. If the option is a
-`Some`, calls the `Some` function with the value of the option, otherwise calls
+`Some`, calls the `Some` function with the values of the option, otherwise calls
 the `None` function. The result of the function call is returned.
 
 #### Example
@@ -472,7 +504,8 @@ function Option:__tostring(): string
 
 Called when `tostring()` is called on the `Option`.
 
-Converts the `Option` to a string.
+Converts the `Option` to a string. The format of the returned string may change
+and should not be relied upon.
 
 #### Example
 
