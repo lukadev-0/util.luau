@@ -3,3 +3,5 @@ description = "Spawn threads using a thread pool"
 version = "1.0.0"
 
 dependencies = ["std"]
+
+targets = ["lune", "roblox"]

@@ -9,7 +9,15 @@ export type TaskLib = libs.TaskLib
 local std = {}
 
 local function detectRuntime(): Runtime?
-	if _G.UTIL_TARGET == "roblox" or typeof(script) == "Instance" then
+	if _G.UTIL_TARGET == "roblox" then
+		return require("./default-runtimes/roblox")
+	end
+
+	if _G.UTIL_TARGET == "lune" then
+		return require("./default-runtimes/lune")
+	end
+
+	if typeof(script) == "Instance" then
 		return require("./default-runtimes/roblox")
 	end
 

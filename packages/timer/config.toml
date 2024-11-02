@@ -3,3 +3,5 @@ description = "Schedule functions to be called at a future time."
 version = "1.0.0"
 
 dependencies = ["std", "future", "threadpool"]
+
+targets = ["lune", "roblox"]

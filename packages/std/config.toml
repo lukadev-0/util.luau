@@ -3,3 +3,5 @@ description = "Runtime agnostic access to standard libraries"
 version = "1.0.0"
 
 types = ["Runtime", "RuntimeDefinition", "TaskLib"]
+
+targets = ["lune", "roblox"]

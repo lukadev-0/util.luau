@@ -4,3 +4,5 @@ version = "1.0.0"
 
 types = ["Future<T>"]
 dependencies = ["option", "threadpool", "std"]
+
+targets = ["lune", "roblox"]

@@ -3,3 +3,5 @@ description = "Option<T> type in Luau"
 version = "1.1.0"
 
 types = ["Option<T>"]
+
+targets = ["luau", "lune", "roblox"]
