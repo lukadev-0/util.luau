@@ -1,6 +1,6 @@
 name = "future"
 description = "Future<T> type in Luau"
-version = "1.0.0"
+version = "1.0.1"
 
 types = ["Future<T>"]
 dependencies = ["option", "threadpool", "std"]

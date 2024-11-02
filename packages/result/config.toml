@@ -1,6 +1,6 @@
 name = "result"
 description = "Result<T, E> type in Luau"
-version = "1.0.0"
+version = "1.0.1"
 
 types = ["Result<T, E>"]
 
