@@ -1,3 +1,5 @@
+local stdio = require("@lune/stdio")
+
 local assertEq = require("@testing/assertEq")
 local describe = require("@testing/describe")
 local test = require("@testing/test")
@@ -418,10 +420,12 @@ end)
 describe("__tostring", function()
 	test("returns a string with the value when Ok", function()
 		assertEq(tostring(Result.Ok(5)), "Result::Ok(5)")
+		assertEq(tostring(Result.Ok({ a = 5 })), `Result::Ok({stdio.format({ a = 5 })})`)
 	end)
 
 	test("returns a string with the error when Err", function()
-		assertEq(tostring(Result.Err("error")), "Result::Err(error)")
+		assertEq(tostring(Result.Err("error")), 'Result::Err("error")')
+		assertEq(tostring(Result.Err({ a = 5 })), `Result::Err({stdio.format({ a = 5 })})`)
 	end)
 end)
 

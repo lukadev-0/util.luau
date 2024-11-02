@@ -1,3 +1,5 @@
+local stdio = require("@lune/stdio")
+
 local assertEq = require("@testing/assertEq")
 local describe = require("@testing/describe")
 local randomTuple = require("@testing/randomTuple")
@@ -427,6 +429,7 @@ describe("__tostring", function()
 		assertEq(tostring(Option.Some(5)), "Option::Some(5)")
 		assertEq(tostring(Option.Some(5, "hello")), 'Option::Some(5, "hello")')
 		assertEq(tostring(Option.Some("hello", true, 5, 20)), 'Option::Some("hello", true, 5, 20)')
+		assertEq(tostring(Option.Some({ a = 5 })), `Option::Some({stdio.format({ a = 5 })})`)
 	end)
 
 	test("returns a string when None", function()

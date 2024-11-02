@@ -318,28 +318,53 @@ Option.join = function(self, other)
 	return Option.Some(unpack(self), unpack(other))
 end :: any
 
---[=[
-	Converts the given option to a string.
-]=]
-function Option.__tostring(self)
-	if self._n ~= 0 then
-		local s = ""
-		for i = 1, self._n do
-			if i > 1 then
-				s ..= ", "
+if _G.UTIL_TARGET == "lune" then
+	-- use `stdio.format` on Lune which pretty-prints tables
+
+	local stdio = require("@lune/stdio")
+
+	function Option.__tostring(self)
+		if self._n ~= 0 then
+			local s = ""
+			for i = 1, self._n do
+				if i > 1 then
+					s ..= ", "
+				end
+
+				local v = self[i]
+				if typeof(v) == "string" then
+					s ..= string.format("%q", v)
+				else
+					s ..= stdio.format(v)
+				end
 			end
 
-			local v = self[i]
-			if typeof(v) == "string" then
-				s ..= string.format("%q", v)
-			else
-				s ..= tostring(v)
-			end
+			return `Option::Some({s})`
+		else
+			return "Option::None"
 		end
+	end
+else
+	function Option.__tostring(self)
+		if self._n ~= 0 then
+			local s = ""
+			for i = 1, self._n do
+				if i > 1 then
+					s ..= ", "
+				end
 
-		return `Option::Some({s})`
-	else
-		return "Option::None"
+				local v = self[i]
+				if typeof(v) == "string" then
+					s ..= string.format("%q", v)
+				else
+					s ..= tostring(v)
+				end
+			end
+
+			return `Option::Some({s})`
+		else
+			return "Option::None"
+		end
 	end
 end
 

@@ -288,14 +288,41 @@ function Result.unpack(self)
 	return self._v, self._e
 end
 
---[=[
-	Converts the given result to a string.
-]=]
-function Result.__tostring(self)
-	if self._ok then
-		return `Result::Ok({self._v})`
+if _G.UTIL_TARGET == "lune" then
+	-- use `stdio.format` on Lune which pretty-prints tables
+
+	local stdio = require("@lune/stdio")
+	function Result.__tostring(self)
+		if self._ok then
+			if typeof(self._v) == "string" then
+				return string.format("Result::Ok(%q)", self._v)
+			else
+				return `Result::Ok({stdio.format(self._v)})`
+			end
+		end
+
+		if typeof(self._e) == "string" then
+			return string.format("Result::Err(%q)", self._e)
+		else
+			return `Result::Err({stdio.format(self._e)})`
+		end
 	end
-	return `Result::Err({self._e})`
+else
+	function Result.__tostring(self)
+		if self._ok then
+			if typeof(self._v) == "string" then
+				return string.format("Result::Ok(%q)", self._v)
+			else
+				return `Result::Ok({self._v})`
+			end
+		end
+
+		if typeof(self._e) == "string" then
+			return string.format("Result::Err(%q)", self._e)
+		else
+			return `Result::Err({self._e})`
+		end
+	end
 end
 
 --[=[
