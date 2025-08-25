@@ -1,0 +1,7 @@
+[tools]
+"github:rojo-rbx/rojo" = "7.4.4"
+"github:lune-org/lune" = "0.8.9"
+"github:UpliftGames/wally" = "0.3.2"
+"github:Kampfkarren/selene" = "0.27.1"
+"github:JohnnyMorganz/stylua" = "0.20.0"
+"github:seaofvoices/darklua" = "0.13.1"
