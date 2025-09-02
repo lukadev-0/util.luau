@@ -1,5 +1,3 @@
---# selene: allow(mixed_table)
-
 export type Option<T...> = typeof(setmetatable(
 	{} :: {
 		-- value to "store" T...

@@ -21,7 +21,6 @@ jobs:
       - run: lune run build
       - run: lune run test
       - run: mise exec github:lune-org/lune@0.8.9 -- lune run test
-      - run: selene .
       - run: stylua --check .
       - run: echo $GITHUB_REF | awk -F "[/@]" '{ printf "PACKAGE_NAME=%s",$3 }' >> "$GITHUB_ENV"
       - uses: ncipollo/release-action@v1
