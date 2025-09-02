@@ -6,3 +6,7 @@ types = ["Future<T>"]
 dependencies = ["option", "threadpool", "std"]
 
 targets = ["lune", "roblox"]
+
+[engines]
+pesde = "^0.7.1"
+lune = "=0.10.2"

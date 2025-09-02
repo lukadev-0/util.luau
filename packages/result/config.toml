@@ -5,3 +5,7 @@ version = "1.2.1"
 types = ["Result<T, E>"]
 
 targets = ["luau", "lune", "roblox"]
+
+[engines]
+pesde = "^0.7.1"
+lune = "=0.10.2"

@@ -58,6 +58,7 @@ type PackageConfig = {
 	types: { string }?,
 	dependencies: { string }?,
 	targets: { string },
+	engines: { pesde: string?, lune: string? }
 }
 
 type ProgressReporter = {
@@ -316,8 +317,9 @@ local function buildPackagePesde(
 		license = packageMetadata.license,
 		authors = packageMetadata.authors,
 		repository = packageMetadata.repository,
+		engines = package.config.engines,
 		indices = {
-			default = "https://github.com/daimond113/pesde-index",
+			default = "https://github.com/pesde-pkg/index",
 		},
 		dependencies = {},
 	}
