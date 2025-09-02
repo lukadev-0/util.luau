@@ -1,6 +1,6 @@
-local Option = require("../option")
-local std = require("../std")
-local threadpool = require("../threadpool")
+local Option = require("../option/lib")
+local std = require("../std/lib")
+local threadpool = require("../threadpool/lib")
 
 local task = std.task
 

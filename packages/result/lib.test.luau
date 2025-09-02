@@ -4,7 +4,7 @@ local assertEq = require("@testing/assertEq")
 local describe = require("@testing/describe")
 local test = require("@testing/test")
 
-local Result = require(".")
+local Result = require("./lib")
 
 describe("Ok", function()
 	test("returns a result containing the given Ok value", function()

@@ -33,6 +33,7 @@ type Context = {
 	outRbxmDir: string,
 
 	pesdeWorkspaceMembers: { string },
+	rbxms: { string },
 
 	packages: { [string]: Package },
 
@@ -98,6 +99,7 @@ local function createBuild(rootDir: string): Context
 	ctx.outRbxmDir = `{ctx.outDir}/rbxm`
 
 	ctx.pesdeWorkspaceMembers = {}
+	ctx.rbxms = {}
 
 	ctx.packages = getPackages(ctx.pkgDir)
 
@@ -143,17 +145,6 @@ local function prepareBuild(ctx: Context): ()
 	local robloxDarkluaConfig = table.clone(baseDarkluaConfig)
 	robloxDarkluaConfig.rules = table.clone(baseDarkluaConfig.rules) :: { any }
 
-	table.insert(robloxDarkluaConfig.rules, {
-		rule = "convert_require",
-		current = {
-			name = "path",
-		},
-		target = {
-			name = "roblox",
-			indexing_style = "property",
-		},
-	})
-
 	table.insert(robloxDarkluaConfig.rules, 1, {
 		rule = "inject_global_value",
 		identifier = "UTIL_TARGET",
@@ -179,7 +170,7 @@ local function copyPackageSource(src: string, dest: string): ()
 end
 
 local function spawnCommand(progress: ProgressReporter, command: string): ()
-	local result = process.spawn(command, {}, {
+	local result = process.exec(command, {}, {
 		shell = true,
 	})
 
@@ -209,14 +200,10 @@ local function spawnCommand(progress: ProgressReporter, command: string): ()
 	end
 end
 
-local function createLinkingFile(targetPackage: PackageConfig, targetPath: string, roblox: boolean): string
+local function createLinkingFile(targetPackage: PackageConfig, targetPath: string): string
 	local s = ""
 	s ..= "--!strict\n"
-	if roblox then
-		s ..= `local pkg = require({targetPath})\n`
-	else
-		s ..= `local pkg = require("{targetPath}")\n`
-	end
+	s ..= `local pkg = require("{targetPath}")\n`
 	if targetPackage.types ~= nil then
 		for _, type in targetPackage.types do
 			s ..= `export type {type} = pkg.{type}\n`
@@ -237,18 +224,69 @@ local function createReadme(package: Package): string
 	return s
 end
 
-local function buildPackageWally(ctx: Context, progress: ProgressReporter, package: Package): ()
-	local workPkgDir = `{ctx.outWorkPkgDir}/{package.config.name}`
-	local outDir = `{ctx.outWallyDir}/{package.config.name}`
+local function buildPackageBase(
+	ctx: Context,
+	progress: ProgressReporter,
+	package: Package,
+	outDir: string,
+	processedDir: string,
+	dependenciesDir: string
+): ()
+	fs.writeDir(outDir)
 
-	progress.report("copying package files for default")
-	fs.copy(`{workPkgDir}/default`, `{outDir}/default/{package.config.name}`)
+	fs.writeFile(`{outDir}/README.md`, createReadme(package))
+	fs.copy(`{ctx.rootDir}/LICENSE`, `{outDir}/LICENSE`)
 
-	progress.report("copying package files for roblox")
-	fs.copy(`{workPkgDir}/roblox`, `{outDir}/roblox/{package.config.name}`)
+	progress.report("copying package source")
+	fs.copy(processedDir, `{outDir}/{package.config.name}`)
 
 	if package.config.dependencies then
-		progress.report("creating dependency linking files for default")
+		progress.report("creating dependency linking files")
+		for _, dependencyName in package.config.dependencies do
+			local dependency = ctx.packages[dependencyName]
+			if dependency == nil then
+				progress.fail(`dependency '{dependencyName}' not found`)
+				process.exit(1)
+			end
+
+			local linkerDir = `{outDir}/{dependencyName}`
+			fs.writeDir(linkerDir)
+			fs.writeFile(
+				`{linkerDir}/lib.luau`,
+				createLinkingFile(dependency.config, `../{dependenciesDir}/{dependencyName}`)
+			)
+		end
+	end
+end
+
+local function buildPackageWally(
+	ctx: Context,
+	progress: ProgressReporter,
+	package: Package,
+	processedPkgs: { [string]: string }
+): ()
+	local outDir = `{ctx.outWallyDir}/{package.config.name}`
+
+	buildPackageBase(ctx, progress, package, outDir, processedPkgs.roblox, "..")
+
+	progress.report("creating root linker file")
+	fs.writeFile(`{outDir}/init.luau`, createLinkingFile(package.config, `@self/{package.config.name}/lib`))
+
+	progress.report("creating wally.toml")
+	local wallyToml = {
+		package = {
+			name = `{WALLY_SCOPE}/{package.config.name}`,
+			version = package.config.version,
+			description = package.config.description,
+			license = packageMetadata.license,
+			authors = packageMetadata.authors,
+			realm = packageMetadata.realm,
+			registry = "https://github.com/UpliftGames/wally-index",
+		},
+		dependencies = {},
+	}
+
+	if package.config.dependencies then
 		for _, dependencyName in package.config.dependencies do
 			local dependency = ctx.packages[dependencyName]
 			if dependency == nil then
@@ -256,70 +294,20 @@ local function buildPackageWally(ctx: Context, progress: ProgressReporter, packa
 				process.exit(1)
 			end
 
-			fs.writeFile(
-				`{outDir}/default/{dependencyName}.luau`,
-				createLinkingFile(dependency.config, `../../{dependencyName}`, false)
-			)
+			wallyToml.dependencies[dependencyName] = `{WALLY_SCOPE}/{dependencyName}@{dependency.config.version}`
 		end
 	end
 
-	progress.report("creating main linking file for default")
-	do
-		fs.writeFile(`{outDir}/init.luau`, createLinkingFile(package.config, `./default/{package.config.name}`, false))
-	end
-
-	progress.report("creating default.project.json for roblox")
-	do
-		local projectJson = {
-			name = package.config.name,
-			tree = {
-				["$path"] = `./roblox/{package.config.name}`,
-			},
-		}
-
-		fs.writeFile(`{outDir}/default.project.json`, serde.encode("json", projectJson, true))
-	end
-
-	progress.report("creating wally.toml")
-	do
-		local wallyToml = {
-			package = {
-				name = `{WALLY_SCOPE}/{package.config.name}`,
-				version = package.config.version,
-				description = package.config.description,
-				license = packageMetadata.license,
-				authors = packageMetadata.authors,
-				realm = packageMetadata.realm,
-				registry = "https://github.com/UpliftGames/wally-index",
-			},
-			dependencies = {},
-		}
-
-		if package.config.dependencies then
-			for _, dependencyName in package.config.dependencies do
-				local dependency = ctx.packages[dependencyName]
-				if dependency == nil then
-					progress.fail(`dependency {dependencyName} not found`)
-					process.exit(1)
-				end
-
-				wallyToml.dependencies[dependencyName] = `{WALLY_SCOPE}/{dependencyName}@{dependency.config.version}`
-			end
-		end
-
-		fs.writeFile(`{outDir}/wally.toml`, serde.encode("toml", wallyToml, true))
-	end
-
-	progress.report("creating README.md")
-	fs.writeFile(`{outDir}/README.md`, createReadme(package))
-
-	progress.report("copying LICENSE")
-	fs.copy(`{ctx.rootDir}/LICENSE`, `{outDir}/LICENSE`)
+	fs.writeFile(`{outDir}/wally.toml`, serde.encode("toml", wallyToml, true))
 end
 
-local function buildPackagePesde(ctx: Context, progress: ProgressReporter, package: Package): ()
-	local workPkgDir = `{ctx.outWorkPkgDir}/{package.config.name}`
-	local outDir = `{ctx.outPesdeDir}/{package.config.name}`
+local function buildPackagePesde(
+	ctx: Context,
+	progress: ProgressReporter,
+	package: Package,
+	processedPkgs: { [string]: string }
+): ()
+	local baseOutDir = `{ctx.outPesdeDir}/{package.config.name}`
 
 	local basePesdeToml = {
 		name = pesdeify(`{WALLY_SCOPE}/{package.config.name}`),
@@ -348,177 +336,120 @@ local function buildPackagePesde(ctx: Context, progress: ProgressReporter, packa
 		end
 	end
 
-	progress.report("creating base package")
-	local basePkgDir = `{workPkgDir}/pesde`
-	fs.writeDir(basePkgDir)
-	fs.writeFile(`{basePkgDir}/README.md`, createReadme(package))
-	fs.copy(`{ctx.rootDir}/LICENSE`, `{basePkgDir}/LICENSE`)
+	fs.writeDir(baseOutDir)
 
-	fs.writeDir(outDir)
+	for target, processedDir in processedPkgs do
+		progress.report(`building pesde package for {target}`)
 
-	if table.find(package.config.targets, "luau") then
-		progress.report("creating luau target")
+		local environment = target
+		if target == "default" then
+			environment = "luau"
+		end
+
+		local outDir = `{baseOutDir}/{target}`
+		buildPackageBase(ctx, progress, package, outDir, processedDir, `{environment}_packages`)
+
 		local pesdeToml = table.clone(basePesdeToml)
 		pesdeToml.target = {
-			environment = "luau",
-			lib = "lib/init.luau",
+			environment = environment,
+			lib = `{package.config.name}/lib.luau`,
 		}
 
-		fs.copy(basePkgDir, `{outDir}/luau`)
-		fs.copy(`{workPkgDir}/default`, `{outDir}/luau/lib`)
-
-		if package.config.dependencies then
-			progress.report("creating dependency linking files for luau")
-			for _, dependencyName in package.config.dependencies do
-				local dependency = ctx.packages[dependencyName]
-				if dependency == nil then
-					progress.fail(`dependency {dependencyName} not found`)
-					process.exit(1)
-				end
-
-				fs.writeFile(
-					`{outDir}/luau/{dependencyName}.luau`,
-					createLinkingFile(dependency.config, `./luau_packages/{dependencyName}`, false)
-				)
+		pesdeToml.includes = {}
+		for _, file in fs.readDir(outDir) do
+			if fs.isDir(`{outDir}/{file}`) then
+				table.insert(pesdeToml.includes, `{file}/**/*`)
+			else
+				table.insert(pesdeToml.includes, file)
 			end
 		end
 
-		pesdeToml.includes = fs.readDir(`{outDir}/luau`)
 		table.insert(pesdeToml.includes, "pesde.toml")
 
-		fs.writeFile(`{outDir}/luau/pesde.toml`, serde.encode("toml", pesdeToml, true))
+		if environment == "roblox" then
+			local buildFiles: { string } = { package.config.name }
 
-		table.insert(ctx.pesdeWorkspaceMembers, `{package.config.name}/luau`)
-	end
-
-	if table.find(package.config.targets, "lune") then
-		progress.report("creating lune target")
-		local pesdeToml = table.clone(basePesdeToml)
-		pesdeToml.target = {
-			environment = "lune",
-			lib = "lib/init.luau",
-		}
-
-		fs.copy(basePkgDir, `{outDir}/lune`)
-		fs.copy(`{workPkgDir}/lune`, `{outDir}/lune/lib`)
-
-		if package.config.dependencies then
-			progress.report("creating dependency linking files for lune")
-			for _, dependencyName in package.config.dependencies do
-				local dependency = ctx.packages[dependencyName]
-				if dependency == nil then
-					progress.fail(`dependency {dependencyName} not found`)
-					process.exit(1)
+			if package.config.dependencies then
+				for _, dependencyName in package.config.dependencies do
+					table.insert(buildFiles, dependencyName)
 				end
-
-				fs.writeFile(
-					`{outDir}/lune/{dependencyName}.luau`,
-					createLinkingFile(dependency.config, `./lune_packages/{dependencyName}`, false)
-				)
 			end
+
+			pesdeToml.target.build_files = buildFiles
 		end
 
-		pesdeToml.includes = fs.readDir(`{outDir}/lune`)
-		table.insert(pesdeToml.includes, "pesde.toml")
+		fs.writeFile(`{outDir}/pesde.toml`, serde.encode("toml", pesdeToml, true))
 
-		fs.writeFile(`{outDir}/lune/pesde.toml`, serde.encode("toml", pesdeToml, true))
-
-		table.insert(ctx.pesdeWorkspaceMembers, `{package.config.name}/lune`)
+		table.insert(ctx.pesdeWorkspaceMembers, `{package.config.name}/{target}`)
 	end
+end
 
-	if table.find(package.config.targets, "roblox") then
-		progress.report("creating roblox target")
-		local pesdeToml = table.clone(basePesdeToml)
-		pesdeToml.target = {
-			environment = "roblox",
-			lib = "lib/init.luau",
-			build_files = { "lib" },
-		}
+local function buildPackageRbxm(
+	ctx: Context,
+	progress: ProgressReporter,
+	package: Package,
+	processedPkgs: { [string]: string }
+): ()
+	local baseWorkDir = `{ctx.outWorkPkgDir}/{package.config.name}`
+	local workDir = `{baseWorkDir}/rbxm`
 
-		fs.copy(basePkgDir, `{outDir}/roblox`)
-		fs.copy(`{workPkgDir}/roblox`, `{outDir}/roblox/lib`)
+	fs.copy(processedPkgs.roblox, workDir)
+	fs.writeFile(`{workDir}/init.luau`, createLinkingFile(package.config, `@self/lib`))
 
-		if package.config.dependencies then
-			progress.report("creating dependency linking files for roblox")
-			for _, dependencyName in package.config.dependencies do
-				local dependency = ctx.packages[dependencyName]
-				if dependency == nil then
-					progress.fail(`dependency {dependencyName} not found`)
-					process.exit(1)
-				end
+	local projectJson = {
+		name = package.config.name,
+		tree = {
+			["$path"] = workDir,
+		},
+	}
 
-				fs.writeFile(
-					`{outDir}/roblox/{dependencyName}.luau`,
-					createLinkingFile(dependency.config, `script.Parent.roblox_packages.{dependencyName}`, true)
-				)
+	local projectPath = `{baseWorkDir}/rbxm.project.json`
+	fs.writeFile(projectPath, serde.encode("json", projectJson, true))
 
-				table.insert(pesdeToml.target.build_files :: { string }, `{dependencyName}.luau`)
-			end
-		end
+	local rbxmPath = `{ctx.outRbxmDir}/{package.config.name}.rbxm`
+	spawnCommand(progress, `rojo build {projectPath} -o {rbxmPath}`)
 
-		pesdeToml.includes = fs.readDir(`{outDir}/roblox`)
-		table.insert(pesdeToml.includes, "pesde.toml")
-
-		fs.writeFile(`{outDir}/roblox/pesde.toml`, serde.encode("toml", pesdeToml, true))
-
-		table.insert(ctx.pesdeWorkspaceMembers, `{package.config.name}/roblox`)
-	end
+	table.insert(ctx.rbxms, rbxmPath)
 end
 
 local function buildPackage(ctx: Context, progress: ProgressReporter, package: Package): ()
 	progress.report("copying source files")
 
 	local workPkgDir = `{ctx.outWorkPkgDir}/{package.config.name}`
-	copyPackageSource(package.path, `{workPkgDir}/src`)
+	local workPkgSrc = `{workPkgDir}/src`
+	copyPackageSource(package.path, workPkgSrc)
 
-	if package.config.dependencies then
-		progress.report("creating dependency linking files")
-		for _, dependencyName in package.config.dependencies do
-			local dependency = ctx.packages[dependencyName]
-			if dependency == nil then
-				progress.fail(`dependency {dependencyName} not found`)
-				process.exit(1)
-			end
-
-			fs.writeFile(
-				`{workPkgDir}/{dependencyName}.luau`,
-				createLinkingFile(dependency.config, `../{dependencyName}/src`, false)
-			)
+	local processedPkgs: { [string]: string } = {}
+	for target, configPath in ctx.darkluaConfig do
+		if target == "base" then
+			continue
 		end
+
+		progress.report(`processing files for {target}`)
+
+		local processedDir = `{workPkgDir}/{target}`
+		spawnCommand(progress, `darklua process -c {configPath} {workPkgSrc} {processedDir}`)
+		processedPkgs[target :: string] = processedDir
 	end
 
-	progress.report("processing files for default")
-	spawnCommand(progress, `darklua process -c {ctx.darkluaConfig.default} {workPkgDir}/src {workPkgDir}/default`)
-
-	progress.report("processing files for lune")
-	spawnCommand(progress, `darklua process -c {ctx.darkluaConfig.lune} {workPkgDir}/src {workPkgDir}/lune`)
-
-	progress.report("processing files for roblox")
-	spawnCommand(progress, `darklua process -c {ctx.darkluaConfig.roblox} {workPkgDir}/src {workPkgDir}/roblox`)
-
 	progress.report("building Wally package")
-	buildPackageWally(ctx, progress, package)
+	buildPackageWally(ctx, progress, package, processedPkgs)
 
 	progress.report("building pesde package")
-	buildPackagePesde(ctx, progress, package)
+	buildPackagePesde(ctx, progress, package, processedPkgs)
+
+	progress.report("building rbxm")
+	buildPackageRbxm(ctx, progress, package, processedPkgs)
 
 	progress.finish()
 end
 
-local function buildRbxms(ctx: Context, progress: ProgressReporter): ()
+local function buildBundleRbxm(ctx: Context, progress: ProgressReporter): ()
 	local folder = roblox.Instance.new("Folder")
 	folder.Name = "util"
 
-	for _, package in ctx.packages do
-		progress.report(`building RBXM for {package.config.name}`)
-
-		local wallyPkg = `{ctx.outWallyDir}/{package.config.name}`
-		local rbxmPath = `{ctx.outRbxmDir}/{package.config.name}.rbxm`
-
-		spawnCommand(progress, `rojo build {wallyPkg} -o {rbxmPath}`)
-
-		local instances = roblox.deserializeModel(fs.readFile(rbxmPath))
-		for _, instance in instances do
+	for _, rbxm in ctx.rbxms do
+		for _, instance in roblox.deserializeModel(fs.readFile(rbxm)) do
 			instance.Parent = folder
 		end
 	end
@@ -651,7 +582,7 @@ local function build(rootDir: string): ()
 	stdio.write("\n")
 
 	local rbxmProgress = createProgressReporter("rbxm")
-	buildRbxms(ctx, rbxmProgress)
+	buildBundleRbxm(ctx, rbxmProgress)
 
 	stdio.write("\n")
 
@@ -660,4 +591,4 @@ local function build(rootDir: string): ()
 	stdio.write("\x1B[?25h")
 end
 
-build(process.cwd)
+build(process.cwd:gsub("/*$", ""))

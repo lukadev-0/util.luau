@@ -2,7 +2,7 @@ local assertEq = require("@testing/assertEq")
 local describe = require("@testing/describe")
 local test = require("@testing/test")
 
-local std = require(".")
+local std = require("./lib")
 
 describe("detectRuntime", function()
 	test("detects lune runtime", function()

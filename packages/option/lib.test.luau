@@ -5,7 +5,7 @@ local describe = require("@testing/describe")
 local randomTuple = require("@testing/randomTuple")
 local test = require("@testing/test")
 
-local Option = require(".")
+local Option = require("./lib")
 
 describe("Some", function()
 	test("returns an option containing the given value", function()

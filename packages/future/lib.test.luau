@@ -4,7 +4,7 @@ local test = require("@testing/test")
 
 local task = require("@lune/task")
 
-local Future = require(".")
+local Future = require("./lib")
 
 describe("new", function()
 	test("creates a finished future with the given value", function()

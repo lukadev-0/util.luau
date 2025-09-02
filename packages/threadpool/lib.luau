@@ -1,4 +1,4 @@
-local std = require("../std")
+local std = require("../std/lib")
 local task = std.task
 
 local threadpool = {}

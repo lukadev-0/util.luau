@@ -1,6 +1,6 @@
-local Future = require("../future")
-local std = require("../std")
-local threadpool = require("../threadpool")
+local Future = require("../future/lib")
+local std = require("../std/lib")
+local threadpool = require("../threadpool/lib")
 
 local task = std.task
 

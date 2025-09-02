@@ -246,6 +246,8 @@ local function createTestLib(blocks: { TestBlock })
 end
 
 local function createTestEnv(file: string, testLib)
+	local fileWithoutExt = file:gsub("%.luau$", "")
+
 	local testEnv = {}
 	function testEnv.require(path)
 		if path:match("^@testing/") then
@@ -259,7 +261,7 @@ local function createTestEnv(file: string, testLib)
 		if path:match("^@lune/") then
 			return require(path) :: any
 		end
-		return require(`../{file}/../{path}`) :: any
+		return require(`../{fileWithoutExt}/../{path}`) :: any
 	end
 	return testEnv
 end

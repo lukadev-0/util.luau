@@ -2,7 +2,7 @@ local assertEq = require("@testing/assertEq")
 local describe = require("@testing/describe")
 local test = require("@testing/test")
 
-local threadpool = require(".")
+local threadpool = require("./lib")
 
 describe("spawn", function()
 	test("executes the functions in a thread", function()
