@@ -13,9 +13,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: ok-nick/setup-aftman@v0.4.2
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+          experimental: true
       - run: lune run build
       - run: lune run test
+      - run: mise exec github:lune-org/lune@0.8.9 -- lune run test
       - run: selene .
       - run: stylua --check .
       - run: echo $GITHUB_REF | awk -F "[/@]" '{ printf "PACKAGE_NAME=%s",$3 }' >> "$GITHUB_ENV"
