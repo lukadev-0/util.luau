@@ -19,6 +19,10 @@ local packageMetadata = {
 	authors = { "LukaDev <luka@lukadev.me> (https://lukadev.me/)" },
 	realm = "shared",
 	repository = "https://github.com/lukadev-0/util.luau",
+	engines = {
+		pesde = "^0.7.1",
+		lune = ">=0.8.9, <0.11.0"
+	}
 }
 
 type Context = {
@@ -57,7 +61,7 @@ type PackageConfig = {
 
 	types: { string }?,
 	dependencies: { string }?,
-	targets: { string },
+	targets: { string }
 }
 
 type ProgressReporter = {
@@ -316,8 +320,9 @@ local function buildPackagePesde(
 		license = packageMetadata.license,
 		authors = packageMetadata.authors,
 		repository = packageMetadata.repository,
+		engines = packageMetadata.engines,
 		indices = {
-			default = "https://github.com/daimond113/pesde-index",
+			default = "https://github.com/pesde-pkg/index",
 		},
 		dependencies = {},
 	}
